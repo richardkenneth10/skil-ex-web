@@ -1,5 +1,5 @@
 import { usePathname } from "next/navigation";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 // Define the context value type
 interface HeaderContextType {
@@ -18,6 +18,10 @@ export const HeaderProvider: React.FC<{ children: React.ReactNode }> = ({
   const [title, setTitle] = useState<string | null>(
     currentPath.toUpperCase().slice(1)
   );
+
+  useEffect(() => {
+    setTitle(currentPath.toUpperCase().slice(1));
+  }, [currentPath]);
 
   // useEffect(() => {
   //   const user = getCookie(Constants.userKey);

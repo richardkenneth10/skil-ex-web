@@ -32,8 +32,6 @@ axios.interceptors.request.use(
 
 axios.interceptors.response.use(
   (response) => {
-    const cookies = response.headers["set-cookie"];
-    console.log(cookies + " cook");
     return response;
   },
   async (error: AxiosError) => {

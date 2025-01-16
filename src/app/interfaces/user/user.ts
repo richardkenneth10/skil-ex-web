@@ -13,8 +13,7 @@ export type IUser = {
 
 export type IMiniUser = {
   id: number;
-  firstName: string;
-  lastName: string;
+  name: string;
   bio: string | null;
   avatarUrl: string | null;
   updatedAt: Date;

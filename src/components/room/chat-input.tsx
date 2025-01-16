@@ -22,7 +22,7 @@ export default function ChatInput({ ref, onSend }: ChatInputProps) {
   };
   return (
     <form
-      className="fixed bottom-20 left-0 w-full px-2 h-10 overflow-hidden"
+      className="fixed bottom-20 md:bottom-4 left-0 md:left-[16.666667%] md:right-0 w-full md:w-auto px-2 h-10 overflow-hidden"
       onSubmit={sendHandler}
     >
       <input

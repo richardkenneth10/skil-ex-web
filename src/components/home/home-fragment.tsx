@@ -1,10 +1,34 @@
 import axios from "@/utils/server-axios";
-import Image from "next/image";
+import Link from "next/link";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import Avatar from "../(main)/avatar";
 import ClientCookie from "../(main)/client-cookie";
 import Rating from "./rating";
 
-type Match = {
+export type Match = {
+  otherUser: {
+    id: number;
+    name: never;
+    bio: string | null;
+    avatarUrl: string | null;
+  };
+  offeredSkill: {
+    id: number;
+    name: string;
+    category: { id: number; name: string };
+  };
+  wantedSkill: {
+    id: number;
+    name: string;
+    category: { id: number; name: string };
+  };
+  pendingMatch?: {
+    id: string;
+    userStatus: "SENDER" | "RECEIVER";
+  };
+};
+
+type MatchWTCategory = {
   otherUser: {
     id: number;
     name: never;
@@ -41,7 +65,7 @@ export default async function HomeFragment() {
   //   { baseURL: "https://localhost:3001" }
   // );
   const res = await axios.get("/skills/matches");
-  const matches: Match[] = res.data;
+  const matches: MatchWTCategory[] = res.data;
 
   return (
     <>
@@ -49,7 +73,7 @@ export default async function HomeFragment() {
       {matches.length == 0 ? (
         <p className="text-center">No data</p>
       ) : (
-        <div className="bg-white h-full p-4">
+        <div className="bg-white min-h-full p-4">
           {matches.map((m, i) => (
             <div
               key={`${m.offeredSkill.id}_${m.wantedSkill.id}_${m.otherUser.id}`}
@@ -57,14 +81,11 @@ export default async function HomeFragment() {
               <div className="my-1 rounded-sm flex items-center p-2">
                 <div className="flex-1">
                   <div className="flex items-center">
-                    <Image
-                      className="bg-cover mx-2 h-[calc(8vh-1rem)] w-[calc(8vh-1rem)]"
-                      src={m.otherUser.avatarUrl ?? "/icons/profile.svg"}
-                      alt="profile photo"
-                      width={100}
-                      height={100}
+                    <Avatar
+                      url={m.otherUser.avatarUrl}
+                      size="calc(8vh - 1rem)"
                     />
-                    <div className="w-[22vw]">
+                    <div className="ml-3 w-[22vw]">
                       <em>
                         <strong>{m.wantedSkill.name}</strong>
                       </em>
@@ -92,10 +113,12 @@ export default async function HomeFragment() {
                 <button className="mx-2">
                   {i % 2 == 1 ? <FaRegBookmark /> : <FaBookmark />}
                 </button>
-                <button className="border-2 px-8 py-2 rounded-3xl border-[#0086CA]">
+                <Link
+                  className="hidden md:block border-2 px-8 py-2 rounded-3xl border-[#0086CA]"
+                  href={`home/match?otherUserId=${m.otherUser.id}&offeredSkillId=${m.offeredSkill.id}&wantedSkillId=${m.wantedSkill.id}`}
+                >
                   View
-                </button>
-                {/* </div> */}
+                </Link>
               </div>
               <div className="bg-slate-100 h-1 rounded-md mx-4"></div>
             </div>

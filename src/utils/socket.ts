@@ -2,7 +2,9 @@ import { Message } from "@/components/room/room-fragment";
 import { io } from "socket.io-client";
 import Constants from "./constants";
 
-const socket = io(Constants.apiBaseUrl, { transports: ["websocket"] });
+const socket = io(`${Constants.apiBaseUrl}/chat`, {
+  transports: ["websocket"],
+});
 
 export const joinRoomChat = (roomId: number) => {
   socket.emit("join-exchange-room-chat", roomId);

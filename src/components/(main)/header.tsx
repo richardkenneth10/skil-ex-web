@@ -3,10 +3,10 @@
 import { useHeader } from "@/contexts/header-context";
 import { useUser } from "@/contexts/user-context";
 import Constants from "@/utils/constants";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { FaArrowLeft, FaBars } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa6";
+import Avatar from "./avatar";
 
 export default function Header({
   openDrawer,
@@ -17,12 +17,13 @@ export default function Header({
 }) {
   const currentPath = usePathname();
   const router = useRouter();
-  const user = useUser();
+  const { user } = useUser();
   const { title } = useHeader();
 
   const isCurrentPathBase = Constants.navItems.some(
     (n) => `/${n.title.toLowerCase()}` === currentPath
   );
+  console.log(title);
 
   return (
     <div className="fixed top-0 left-0 md:left-[16.666667%] right-0 h-[8vh] flex md:justify-end bg-[#0086CA] md:bg-white text-white md:text-inherit items-center py-4 px-4 md:pl-0">
@@ -51,13 +52,7 @@ export default function Header({
           openTopDrawer();
         }}
       >
-        <Image
-          className="bg-cover h-[calc(8vh-1rem)] w-[calc(8vh-1rem)]"
-          src={user?.avatarUrl ?? "/icons/profile.svg"}
-          alt="profile photo"
-          width={100}
-          height={100}
-        />
+        <Avatar size="calc(8vh - 1rem)" url={user?.avatarUrl} />
         <h6 className="ml-2 font-bold text-sm">{user?.firstName ?? ""}</h6>
         <FaChevronDown className="ml-2 text-xl border border-black rounded-full p-1" />
       </button>

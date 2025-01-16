@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
+import Button from "./button";
 import FormField from "./form-field";
 
 export default function SignupForm() {
@@ -88,12 +89,7 @@ export default function SignupForm() {
         </button>
       </div>{" "}
       <br />
-      <button
-        type="submit"
-        className={`bg-[#0086CA] text-white font-bold w-60 py-2 rounded-md`}
-      >
-        Sign up
-      </button>
+      <Button text="Sign up" />
       <br />
       <p>
         Already have an account?{" "}
