@@ -5,11 +5,19 @@ export default function VideoControls({
   onToggleScreenShare,
   isFullScreen,
   onToggleFullScreen,
+  isVideoMuted,
+  onToggleMuteVideo,
+  isAudioMuted,
+  onToggleMuteAudio,
 }: {
   isScreenShared: boolean;
   onToggleScreenShare: () => void;
   isFullScreen: boolean;
   onToggleFullScreen: () => void;
+  isVideoMuted: boolean;
+  onToggleMuteVideo: () => void;
+  isAudioMuted: boolean;
+  onToggleMuteAudio: () => void;
 }) {
   return (
     <div className="absolute flex justify-center w-full">
@@ -21,6 +29,14 @@ export default function VideoControls({
         <Button
           onClick={onToggleFullScreen}
           text={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+        />
+        <Button
+          onClick={onToggleMuteAudio}
+          text={isAudioMuted ? "Unmute Audio" : "Mute Audio"}
+        />
+        <Button
+          onClick={onToggleMuteVideo}
+          text={isVideoMuted ? "Unmute Video" : "Mute Video"}
         />
       </div>
     </div>

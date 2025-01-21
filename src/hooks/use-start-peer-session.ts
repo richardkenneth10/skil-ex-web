@@ -1,8 +1,9 @@
+import { SignalingUser } from "@/app/interfaces/user/user";
 import createPeerConnectionContext from "@/utils/peer-connection-session";
 import { RefObject, useEffect, useMemo, useState } from "react";
 
 export default function useStartPeerSession(
-  room: string,
+  channel: string,
   userMediaStream: MediaStream | null,
   localVideoRef: RefObject<HTMLVideoElement | null>
 ) {
@@ -10,30 +11,32 @@ export default function useStartPeerSession(
 
   const [displayMediaStream, setDisplayMediaStream] =
     useState<MediaStream | null>(null);
-  const [connectedUsers, setConnectedUsers] = useState<string[]>([]);
+  const [connectedUsers, setConnectedUsers] = useState<SignalingUser[]>([]);
 
   useEffect(() => {
     if (userMediaStream) {
-      peerVideoConnection.joinRoom(room);
+      peerVideoConnection.joinChannel(channel);
       peerVideoConnection.onAddUser((user) => {
         setConnectedUsers((users) => [...users, user]);
         peerVideoConnection.addPeerConnection(
-          user,
+          user.id,
           userMediaStream,
           (stream) => {
             //if we know its just one remote video always, we can just receive the ref
             const peerRemoteVideo = document.getElementById(
-              user
+              user.id
             ) as HTMLVideoElement | null;
 
             if (peerRemoteVideo) peerRemoteVideo.srcObject = stream;
           }
         );
-        peerVideoConnection.callUser(user);
+        peerVideoConnection.callUser(user.id);
       });
 
       peerVideoConnection.onRemoveUser((socketId) => {
-        setConnectedUsers((users) => users.filter((user) => user !== socketId));
+        setConnectedUsers((users) =>
+          users.filter((user) => user.id !== socketId)
+        );
         peerVideoConnection.removePeerConnection(socketId);
       });
 
@@ -41,12 +44,12 @@ export default function useStartPeerSession(
         setConnectedUsers(users);
         for (const user of users) {
           peerVideoConnection.addPeerConnection(
-            user,
+            user.id,
             userMediaStream,
             (stream) => {
               //if we know its just one remote video always, we can just receive the ref
               const peerRemoteVideo = document.getElementById(
-                user
+                user.id
               ) as HTMLVideoElement | null;
               if (peerRemoteVideo) peerRemoteVideo.srcObject = stream;
             }
@@ -65,7 +68,7 @@ export default function useStartPeerSession(
         userMediaStream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [peerVideoConnection, room, userMediaStream]);
+  }, [peerVideoConnection, channel, userMediaStream]);
 
   const cancelScreenSharing = async () => {
     if (!userMediaStream || !localVideoRef.current) return;

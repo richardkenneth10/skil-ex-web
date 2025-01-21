@@ -3,22 +3,32 @@
 import LocalVideo from "@/components/video/local-video";
 import RemoteVideo from "@/components/video/remote-video";
 import VideoControls from "@/components/video/video-controls";
-import useCreateMediaStream from "@/hooks/use-create-media-stream";
-import useStartPeerSession from "@/hooks/use-start-peer-session";
+import useCreateMediaStream2 from "@/hooks/use-create-media-stream2";
+import useStartPeerSession2 from "@/hooks/use-start-peer-session2";
 import toggleFullScreen from "@/utils/toggle-full-screen";
 import { useRef, useState } from "react";
 
 export default function VideoPage() {
   const mainRef = useRef<HTMLDivElement>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
-  const userMediaStream = useCreateMediaStream({ localVideoRef });
-  const { connectedUsers, shareScreen, cancelScreenSharing, isScreenShared } =
-    useStartPeerSession("1", userMediaStream, localVideoRef);
+  const userMediaStream = useCreateMediaStream2({ localVideoRef });
+  const {
+    connectedUsers,
+    shareScreen,
+    cancelScreenSharing,
+    isScreenShared,
+    toggleMuteAudio,
+    isAudioMuted,
+    toggleMuteVideo,
+    isVideoMuted,
+  } = useStartPeerSession2(
+    "68ff8239-ad30-4e3c-b6be-f68ec9d8f21b",
+    userMediaStream,
+    localVideoRef
+  );
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   const handleScreenShare = async () => {
-    console.log("screen share", isScreenShared);
-
     if (isScreenShared) await cancelScreenSharing();
     else await shareScreen();
   };
@@ -26,9 +36,19 @@ export default function VideoPage() {
   const handleFullScreen = async () => {
     setIsFullScreen((v) => {
       if (!mainRef.current) return v;
-      toggleFullScreen(!v, mainRef.current);
+      toggleFullScreen(!v, mainRef.current, () => setIsFullScreen(false));
       return !v;
     });
+  };
+
+  const handleMuteAudio = async () => {
+    console.log("han");
+
+    await toggleMuteAudio();
+  };
+
+  const handleMuteVideo = async () => {
+    await toggleMuteVideo();
   };
 
   return (
@@ -38,13 +58,17 @@ export default function VideoPage() {
         <LocalVideo ref={localVideoRef} autoPlay playsInline muted />
 
         {connectedUsers.map((user) => (
-          <RemoteVideo key={user} id={user} autoPlay playsInline />
+          <RemoteVideo key={user.id} id={user.id} autoPlay playsInline />
         ))}
         <VideoControls
           isScreenShared={isScreenShared}
           onToggleScreenShare={handleScreenShare}
           isFullScreen={isFullScreen}
           onToggleFullScreen={handleFullScreen}
+          isAudioMuted={isAudioMuted}
+          onToggleMuteAudio={handleMuteAudio}
+          isVideoMuted={isVideoMuted}
+          onToggleMuteVideo={handleMuteVideo}
         />
       </div>
     </div>

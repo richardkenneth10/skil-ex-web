@@ -1,3 +1,4 @@
+import { SignalingUser } from "@/app/interfaces/user/user";
 import { io, Socket } from "socket.io-client";
 import Constants from "./constants";
 
@@ -31,7 +32,7 @@ interface IAnswerData {
 class PeerConnectionSession {
   private _onConnected?: ConnectionStateCB;
   private _onDisconnected?: ConnectionStateCB;
-  private _room?: string;
+  private _channel?: string;
   socket: Socket;
   isAlreadyCalling = false;
   peerConnections: Record<string, RTCPeerConnection> = {};
@@ -43,9 +44,9 @@ class PeerConnectionSession {
     this.onCallMade();
   }
 
-  joinRoom = (room: string) => {
-    this._room = room;
-    this.socket.emit("join-room", room);
+  joinChannel = (channel: string) => {
+    this._channel = channel;
+    this.socket.emit("join-channel", channel);
   };
 
   addPeerConnection(
@@ -132,24 +133,32 @@ class PeerConnectionSession {
     });
   };
 
-  onAddUser = (callback: (user: string) => void) => {
-    this.socket.on(`${this._room}-add-user`, ({ user }: { user: string }) =>
-      callback(user)
+  onAddUser = (callback: (user: SignalingUser) => void) => {
+    this.socket.on(
+      `${this._channel}-add-user`,
+      ({ user }: { user: SignalingUser }) => callback(user)
     );
   };
 
   onRemoveUser = (callback: (socketId: string) => void) => {
     this.socket.on(
-      `${this._room}-remove-user`,
+      `${this._channel}-remove-user`,
       ({ socketId }: { socketId: string }) => callback(socketId)
     );
   };
 
-  onUpdateUserList = (callback: (users: string[], current: string) => void) => {
+  onUpdateUserList = (
+    callback: (users: SignalingUser[], current: SignalingUser) => void
+  ) => {
     this.socket.on(
-      `${this._room}-update-user-list`,
-      ({ users, current }: { users: string[]; current: string }) =>
-        callback(users, current)
+      `${this._channel}-update-user-list`,
+      ({
+        users,
+        current,
+      }: {
+        users: SignalingUser[];
+        current: SignalingUser;
+      }) => callback(users, current)
     );
   };
 

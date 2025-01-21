@@ -18,3 +18,10 @@ export type IMiniUser = {
   avatarUrl: string | null;
   updatedAt: Date;
 };
+
+export type SignalingUserRole = "TEACHER" | "LEARNER";
+
+export type SignalingUser = {
+  id: string;
+  role: SignalingUserRole;
+};

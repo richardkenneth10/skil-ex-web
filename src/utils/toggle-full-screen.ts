@@ -1,6 +1,34 @@
+function setupFullScreenExitListener(onExit: () => void) {
+  const handleChange = () => {
+    const fullscreenElement = document.fullscreenElement;
+
+    if (!fullscreenElement) {
+      onExit();
+      document.removeEventListener("fullscreenchange", handleChange);
+    }
+  };
+  document.addEventListener("fullscreenchange", handleChange);
+
+  // For Safari (uses webkit-prefixed events)
+
+  const handleWebkitChange = () => {
+    const fullscreenElement = document.fullscreenElement;
+
+    if (!fullscreenElement) {
+      onExit();
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        handleWebkitChange
+      );
+    }
+  };
+  document.addEventListener("webkitfullscreenchange", handleWebkitChange);
+}
+
 export default function toggleFullscreen(
   fullscreen: boolean,
-  element: HTMLElement
+  element: HTMLElement,
+  onExit: () => void
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const _element: any = element;
@@ -15,6 +43,7 @@ export default function toggleFullscreen(
     } else if (_element.webkitRequestFullscreen) {
       _element.webkitRequestFullscreen();
     }
+    setupFullScreenExitListener(onExit);
   } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const _document: any = document;
