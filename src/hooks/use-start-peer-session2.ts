@@ -1,57 +1,63 @@
-import { SignalingUser } from "@/app/interfaces/user/user";
-import createPeerConnectionContext2 from "@/utils/peer-connection-session2";
+import {
+  SignalingMessage,
+  SignalingUser,
+  SignalingUserRole,
+} from "@/app/interfaces/user/user";
+import createPeerConnectionContext2, {
+  PeerConnectionSession2,
+} from "@/utils/peer-connection-session2";
 import { Device } from "mediasoup-client";
-import { RefObject, useEffect, useMemo, useState } from "react";
+import { RefObject, useEffect, useState } from "react";
 
 export default function useStartPeerSession2(
+  userRole: SignalingUserRole,
   channel: string,
   userMediaStream: MediaStream | null,
-  localVideoRef: RefObject<HTMLVideoElement | null>
+  localVideoRef: RefObject<HTMLVideoElement | null>,
+  selectedSpeaker: string | null
 ) {
   const [displayMediaStream, setDisplayMediaStream] =
     useState<MediaStream | null>(null);
   const [audioMuted, setAudioMuted] = useState(false);
   const [videoMuted, setVideoMuted] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState<SignalingUser[]>([]);
-  const [device, setDevice] = useState<Device | null>(null);
+  const [messages, setMessages] = useState<SignalingMessage[]>([]);
+  const [connectionSetup, setConnectionSetup] = useState(false);
 
-  const peerVideoConnection = useMemo(
-    () => (device ? createPeerConnectionContext2(device) : null),
-    [device]
-  );
-
-  useEffect(() => {
-    setDevice(new Device());
-  }, []);
+  const [peerVideoConnection, setPeerVideoConnection] =
+    useState<PeerConnectionSession2 | null>(null);
 
   useEffect(() => {
-    console.log("eff");
-    console.log(peerVideoConnection);
+    let isMounted = true;
 
-    // const device = new Device();
-    // setDevice(device);
+    if (connectionSetup) return;
+    let peerVideoConnection: PeerConnectionSession2;
 
-    if (peerVideoConnection && userMediaStream) {
-      peerVideoConnection.joinChannel(channel, userMediaStream);
+    const setupConnection = async () => {
+      if (!userMediaStream) return;
+      peerVideoConnection = createPeerConnectionContext2(userRole);
+      setPeerVideoConnection(peerVideoConnection);
 
       peerVideoConnection.onAddUser((user) => {
         console.log("new user", user);
-
         setConnectedUsers((users) => [...users, user]);
       });
 
       peerVideoConnection.onRemoveUser((socketId) => {
         console.log("removed user", socketId);
-
         setConnectedUsers((users) =>
           users.filter((user) => user.id !== socketId)
         );
-        // peerVideoConnection.removePeerConnection(socketId);
       });
 
-      peerVideoConnection.onUpdateUserList((users) => {
-        console.log("just joined", users);
+      peerVideoConnection.onUpdateUserList((users, current) => {
+        console.log("just joined", users, current);
         setConnectedUsers(users);
+      });
+
+      peerVideoConnection.onReceiveMessage((m) => {
+        console.log("new message", m);
+        setMessages((prev) => [...prev, m]);
       });
 
       peerVideoConnection.onTrackMuteToggled((trackData) => {
@@ -66,19 +72,52 @@ export default function useStartPeerSession2(
           }
         }
       );
-    }
 
-    // setInterval(() => {
-    //   console.log(peerVideoConnection?.producers);
-    // }, 3000);
+      //last so that the listeners are already set for events that will be emitted during join
+      const { audioMuted, videoMuted } = await peerVideoConnection.joinChannel(
+        new Device(),
+        channel,
+        userMediaStream
+      );
+      if (!isMounted) {
+        peerVideoConnection.clearConnections();
+        return;
+      }
+      setAudioMuted(audioMuted);
+      if (videoMuted) setVideoMuted(videoMuted);
+
+      setConnectionSetup(true);
+    };
+
+    setupConnection();
 
     return () => {
-      if (peerVideoConnection || userMediaStream) {
-        peerVideoConnection?.clearConnections();
-        userMediaStream?.getTracks().forEach((track) => track.stop());
-      }
+      isMounted = false;
+
+      if (userMediaStream && connectionSetup)
+        peerVideoConnection.clearConnections();
     };
-  }, [, channel, userMediaStream]);
+  }, [userRole, channel, userMediaStream, connectionSetup]);
+
+  useEffect(() => {
+    if (!userMediaStream || !peerVideoConnection || !connectionSetup) return;
+    for (const track of userMediaStream.getTracks()) {
+      console.log(track);
+
+      peerVideoConnection.replaceProducedTrack(track);
+    }
+  }, [userMediaStream, peerVideoConnection, connectionSetup]);
+
+  useEffect(() => {
+    if (!selectedSpeaker) return;
+    connectedUsers.forEach((u) => {
+      const peerRemoteVideo = document.getElementById(u.id) as
+        | HTMLVideoElement
+        | HTMLAudioElement
+        | null;
+      peerRemoteVideo?.setSinkId(selectedSpeaker);
+    });
+  }, [connectedUsers, selectedSpeaker]);
 
   const cancelScreenSharing = async () => {
     if (!peerVideoConnection || !userMediaStream || !localVideoRef.current)
@@ -111,6 +150,7 @@ export default function useStartPeerSession2(
 
   const toggleMuteAudio = async () => {
     if (!peerVideoConnection) return;
+
     const res = await peerVideoConnection.toggleAudioMute();
     if (res) setAudioMuted(res.muted);
   };
@@ -118,11 +158,13 @@ export default function useStartPeerSession2(
   const toggleMuteVideo = async () => {
     if (!peerVideoConnection) return;
     const res = await peerVideoConnection.toggleVideoMute();
+
     if (res) setVideoMuted(res.muted);
   };
 
   return {
     connectedUsers,
+    messages,
     peerVideoConnection,
     shareScreen,
     cancelScreenSharing,

@@ -6,8 +6,22 @@ const socket = io(`${Constants.apiBaseUrl}/chat`, {
   transports: ["websocket"],
 });
 
-export const joinRoomChat = (roomId: number) => {
-  socket.emit("join-exchange-room-chat", roomId);
+export const joinRoomChat = async (roomId: number) => {
+  return await new Promise<{
+    ongoingStreamSession: { channelId: string } | null;
+  }>((r) => socket.emit("join-exchange-room-chat", roomId, r));
+};
+
+export const subscribeToStreamStarted = (
+  callback: (channelId: string) => void
+) => {
+  socket.on("stream-started", callback);
+};
+
+export const subscribeToStreamEnded = (
+  callback: (channelId: string, endedAt: Date) => void
+) => {
+  socket.on("stream-ended", callback);
 };
 
 export const subscribeToRoomChat = (callback: (m: Message) => void) => {

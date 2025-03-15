@@ -23,7 +23,6 @@ export default function Header({
   const isCurrentPathBase = Constants.navItems.some(
     (n) => `/${n.title.toLowerCase()}` === currentPath
   );
-  console.log(title);
 
   return (
     <div className="fixed top-0 left-0 md:left-[16.666667%] right-0 h-[8vh] flex md:justify-end bg-[#0086CA] md:bg-white text-white md:text-inherit items-center py-4 px-4 md:pl-0">

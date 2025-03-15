@@ -27,11 +27,12 @@ export default function useCalculateVoiceVolume(
 
     try {
       const source = audioCtx.createMediaStreamSource(stream);
+      // source.connect(analyser);
       source.connect(distortion);
       distortion.connect(biquadFilter);
       biquadFilter.connect(gain);
       gain.connect(analyser);
-      analyser.connect(audioCtx.destination);
+      // analyser.connect(audioCtx.destination);
 
       distortion.oversample = "4x";
       biquadFilter.gain.setTargetAtTime(0, audioCtx.currentTime, 0);

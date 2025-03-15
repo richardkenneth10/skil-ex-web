@@ -14,9 +14,7 @@ export type IUser = {
 export type IMiniUser = {
   id: number;
   name: string;
-  bio: string | null;
   avatarUrl: string | null;
-  updatedAt: Date;
 };
 
 export type SignalingUserRole = "TEACHER" | "LEARNER";
@@ -24,4 +22,10 @@ export type SignalingUserRole = "TEACHER" | "LEARNER";
 export type SignalingUser = {
   id: string;
   role: SignalingUserRole;
+  user: IMiniUser;
+};
+
+export type SignalingMessage = {
+  user: SignalingUser;
+  content: string;
 };

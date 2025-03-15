@@ -2,17 +2,21 @@
 
 import { useHeader } from "@/contexts/header-context";
 import axios from "@/utils/axios";
+import Chat from "@/utils/chat";
 import DateTime from "@/utils/datetime";
 import { sleep } from "@/utils/dev";
 import {
   emitRoomMessage,
   joinRoomChat,
   subscribeToRoomChat,
+  subscribeToStreamEnded,
+  subscribeToStreamStarted,
   unsubscribeToRoomChat,
 } from "@/utils/socket";
 import { useUser } from "@/utils/useUser";
+import { motion } from "framer-motion";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ChatInput from "./chat-input";
 import { Message, RoomMsgsResData, SkillMatch } from "./room-fragment";
@@ -25,6 +29,7 @@ export default function ClientRoomFragment({
   messages: Message[];
   skillMatch: SkillMatch;
 }) {
+  const router = useRouter();
   const { setTitle } = useHeader();
   const user = useUser();
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -33,6 +38,9 @@ export default function ClientRoomFragment({
   const [messages, setMessages] = useState<Message[]>(_messages);
   const [hasMore, setHasMore] = useState(_messages.length == 10);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [liveRinging, setLiveRinging] = useState<{ channelId: string } | null>(
+    null
+  );
 
   const { id: roomId } = useParams();
 
@@ -54,11 +62,34 @@ export default function ClientRoomFragment({
     scrollToBottom();
 
     //maybe we'll validate rommId type later
-    joinRoomChat(parseInt(roomId as string));
+    joinRoomChat(parseInt(roomId as string)).then(
+      ({ ongoingStreamSession }) => {
+        console.log(ongoingStreamSession);
+
+        setLiveRinging(ongoingStreamSession);
+      }
+    );
     subscribeToRoomChat((m) => {
       setMessages((prev) => [m, ...prev]);
       if (isAtBottomRef.current || user?.id === m.senderId)
         setTimeout(scrollToBottom, 1);
+    });
+
+    subscribeToStreamStarted((channelId) => {
+      setLiveRinging({ channelId });
+    });
+
+    subscribeToStreamEnded((channelId, endedAt) => {
+      setLiveRinging((v) => (v?.channelId == channelId ? null : v));
+
+      setMessages((messages) => {
+        const assMsg = messages.find(
+          (m) => m.liveMessage?.channelId == channelId
+        );
+        if (assMsg) assMsg.liveMessage!.session.endedAt = endedAt;
+
+        return messages;
+      });
     });
 
     return () => {
@@ -116,18 +147,58 @@ export default function ClientRoomFragment({
     }
   };
 
+  const handleLive = async () => {
+    if (liveRinging) {
+      return router.push(`/live/${liveRinging.channelId}`);
+    }
+    const { channelId }: { channelId: string } = (
+      await axios.post(`/rooms/${roomId}/go-live`)
+    ).data;
+    router.push(`/live/${channelId}`);
+  };
+
   return (
     <>
-      <div className="bg-gray-200 h-full relative">
-        <div className="bg-primary -mx-2 -mt-2 pl-2 pb-2 md:pt-2 h-12 md:h-14 flex items-center md:absolute md:min-w-[70%] md:w-fit md:right-0 md:left-0 md:mx-auto md:rounded-b-lg md:">
-          <Image
-            className="w-10 h-10 rounded-full object-cover"
-            src={skillMatch.otherUser.avatarUrl ?? "/icons/profile.svg"}
-            alt={`${skillMatch.otherUser.name}'s avatar`}
-            width={100}
-            height={100}
-          />
-          <p className="ml-4 text-white">{skillMatch.otherUser.name}</p>
+      <div className="bg-gray-200 h-full">
+        <div className="relative">
+          <div className="md:absolute md:left-1/2 md:-translate-x-1/2 bg-primary -mx-2 -mt-2 px-2 pb-2 md:pt-2 h-12 md:h-14 flex justify-between items-center md:min-w-[70%] md:w-fit md:mx-auto md:rounded-b-lg md:z-10">
+            <div className="flex items-center">
+              <Image
+                className="w-10 h-10 rounded-full object-cover"
+                src={skillMatch.otherUser.avatarUrl ?? "/icons/profile.svg"}
+                alt={`${skillMatch.otherUser.name}'s avatar`}
+                width={100}
+                height={100}
+              />
+              <div className="ml-4 text-white">
+                <p className="font-bold capitalize">
+                  {skillMatch.otherUser.name}
+                </p>
+                {liveRinging && (
+                  <p className="italic text-sm">Ongoing Live session...</p>
+                )}
+              </div>
+            </div>
+            <motion.div
+              onClick={handleLive}
+              animate={!liveRinging ? "stop" : { x: [0, -2, 2, -2, 2, 0] }}
+              transition={
+                (liveRinging ?? undefined) && {
+                  duration: 0.3,
+                  repeat: Infinity,
+                }
+              }
+              className="inline-block cursor-pointer"
+            >
+              <Image
+                className="h-8 w-8"
+                src="/icons/live.png"
+                alt="Go live"
+                width={100}
+                height={100}
+              />
+            </motion.div>
+          </div>
         </div>
         <div
           className="pt-4 md:pt-14 h-[calc(100%-(2.5rem+0.5rem+2.5rem))] md:h-[calc(100%-(2.5rem+0.5rem+0.5rem))] overflow-y-auto"
@@ -161,9 +232,49 @@ export default function ClientRoomFragment({
                         user?.id === m.senderId
                           ? "ml-auto rounded-tr-none bg-[#69c0ec]"
                           : "rounded-tl-none bg-white"
+                      } ${
+                        Chat.isLiveMsgWithOngoingSession(m) && "cursor-pointer"
                       }`}
+                      {...(Chat.isLiveMsgWithOngoingSession(m) && {
+                        onClick: () => {
+                          router.push(`/live/${m.liveMessage!.channelId}`);
+                        },
+                      })}
                     >
-                      <p>{m.content}</p>
+                      {m.type == "LIVE" ? (
+                        <div className="flex items-center gap-1">
+                          <div
+                            className={`h-10 w-10 rounded-full p-1 ${
+                              user?.id === m.senderId
+                                ? "bg-[#c0ddec]"
+                                : "bg-gray-200"
+                            }`}
+                          >
+                            <Image
+                              className="invert brightness-100"
+                              src="/icons/live.png"
+                              alt="Live"
+                              width={100}
+                              height={100}
+                            />
+                          </div>
+                          <div>
+                            <p className="font-bold">{Chat.getContent(m)}</p>
+                            {!m.liveMessage!.session.endedAt ? (
+                              <p className="text-gray-700">In Live session</p>
+                            ) : (
+                              <p className="text-gray-700">
+                                {DateTime.difference(
+                                  m.liveMessage!.session.startedAt,
+                                  m.liveMessage!.session.endedAt
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <p>{Chat.getContent(m)}</p>
+                      )}
                       <p className="text-right text-[0.6rem] text-gray-700">
                         {DateTime.formatTime(m.createdAt)}
                       </p>

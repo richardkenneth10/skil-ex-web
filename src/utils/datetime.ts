@@ -59,4 +59,31 @@ export default class DateTime {
       date.getFullYear() === yesterday.getFullYear()
     );
   }
+
+  static difference(start: Date, end: Date) {
+    start = new Date(start);
+    end = new Date(end);
+    const millisInOneSec = 1000;
+    const secsInOneMin = 60;
+    const minsInOneHr = 60;
+    const hrsInOneDay = 24;
+    const diffInMillis = end.getTime() - start.getTime();
+    const inSecs = Math.ceil(diffInMillis / millisInOneSec);
+    const inMins = Math.ceil(diffInMillis / (millisInOneSec * secsInOneMin));
+    const inHrs = Math.ceil(
+      diffInMillis / (millisInOneSec * secsInOneMin * minsInOneHr)
+    );
+    const inDays = Math.ceil(
+      diffInMillis / (millisInOneSec * secsInOneMin * minsInOneHr * hrsInOneDay)
+    );
+    const difference =
+      inSecs < secsInOneMin
+        ? `${inSecs} sec`
+        : inMins < minsInOneHr
+        ? `${inMins} mins`
+        : inHrs < hrsInOneDay
+        ? `${inHrs} hours`
+        : `${inDays} days`;
+    return difference;
+  }
 }

@@ -3,13 +3,6 @@
 import { setCookie } from "cookies-next";
 
 export default function ClientCookie({ cookie }: { cookie?: string[] }) {
-  console.log(cookie);
-  console.log(typeof cookie);
-
-  // const all = await getCookies();
-  // console.log(all);
-  // console.debug(all);
-
   if (cookie) {
     cookie.forEach(async (cookieString) => {
       const [keyValue, ...attributes] = cookieString.split("; "); // Split the cookie string into key-value and attributes

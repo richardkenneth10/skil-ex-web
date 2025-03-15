@@ -1,5 +1,9 @@
 import { AppData } from "@/app/interfaces/mediasoup/app-data";
-import { SignalingUser } from "@/app/interfaces/user/user";
+import {
+  SignalingMessage,
+  SignalingUser,
+  SignalingUserRole,
+} from "@/app/interfaces/user/user";
 import {
   Consumer,
   ConsumerOptions,
@@ -25,7 +29,7 @@ type ScreenShareToggleData = {
 
 type ConnectionStateCB = (event: Event, id: string) => void;
 
-class PeerConnectionSession2 {
+export class PeerConnectionSession2 {
   private _onConnected?: ConnectionStateCB;
   private _onDisconnected?: ConnectionStateCB;
   private _channel?: string;
@@ -33,32 +37,45 @@ class PeerConnectionSession2 {
   private _producers: Producer[] = [];
   private _transports: { send?: Transport; receive?: Transport } = {};
   socket: Socket;
-  device: Device;
+  role: SignalingUserRole;
   peerConnections: Record<string, RTCPeerConnection> = {};
 
-  constructor(socket: Socket, device: Device) {
+  constructor(socket: Socket, role: SignalingUserRole) {
     this.socket = socket;
-    this.device = device;
+    this.role = role;
   }
 
-  joinChannel = async (channel: string, stream: MediaStream) => {
-    console.log("joining");
+  joinChannel = async (
+    device: Device,
+    channel: string,
+    stream: MediaStream
+  ) => {
+    console.log("joining", channel, this.socket);
 
-    const routerRtpCapabilities = await new Promise<RtpCapabilities>(
-      (resolve) => this.socket.emit("join-channel", channel, resolve)
-    );
+    const { routerRtpCapabilities, role } = await new Promise<{
+      role: SignalingUserRole;
+      routerRtpCapabilities: RtpCapabilities;
+    }>((resolve) => this.socket.emit("join-channel", channel, resolve));
 
-    console.log("b4 cre");
+    this._channel = channel;
 
-    this.device.load({ routerRtpCapabilities });
+    if (this.role !== role) throw new Error("User role does not match.");
+
+    console.log("b4 cre", device);
+
+    await device.load({ routerRtpCapabilities });
+
+    console.log(device);
 
     const sendTransportInfo = await new Promise<TransportOptions>((resolve) =>
       this.socket.emit("create-transport", "send", channel, resolve)
     );
 
     console.log("created");
-    const sendTransport = this.device.createSendTransport(sendTransportInfo);
+    const sendTransport = device.createSendTransport(sendTransportInfo);
     this._transports.send = sendTransport;
+
+    console.log("send tp created");
 
     sendTransport.on("connect", (parameters, callback) =>
       this.socket.emit(
@@ -78,26 +95,34 @@ class PeerConnectionSession2 {
     });
 
     const audioTrack = stream.getAudioTracks()[0];
-    await this.produceTrack(audioTrack);
+    //since the tracks 'enabled' property have been set by now, the producers will by default be muted or unmuted
+    const audioProducer = (await this.produceTrack(audioTrack))!;
 
-    const videoTrack = stream.getVideoTracks()[0];
-    await this.produceTrack(videoTrack);
+    let videoProducer: Producer<AppData> | undefined;
+
+    if (this.role === "TEACHER") {
+      const videoTrack = stream.getVideoTracks()[0];
+      videoProducer = await this.produceTrack(videoTrack);
+    }
 
     const rcvTransportInfo = await new Promise<TransportOptions>((resolve) =>
       this.socket.emit("create-transport", "receive", channel, resolve)
     );
-    const rcvTransport = this.device.createRecvTransport(rcvTransportInfo);
+    const rcvTransport = device.createRecvTransport(rcvTransportInfo);
     this._transports.receive = rcvTransport;
+    console.log("recv tp created");
 
-    rcvTransport.on("connect", (parameters, callback) =>
-      this.socket.emit(
+    rcvTransport.on("connect", (parameters, callback) => {
+      console.log("connec");
+
+      return this.socket.emit(
         "connect-transport",
         "receive",
         parameters,
         channel,
         callback
-      )
-    );
+      );
+    });
 
     this.socket.on(
       "produced",
@@ -112,26 +137,25 @@ class PeerConnectionSession2 {
         mute: boolean;
         appData: AppData;
       }) => {
-        console.log("pr c");
-        console.log(userId, producerId, mute);
+        console.log("pr c", mute);
 
         this.socket.emit(
           "consume",
           {
             producerId,
-            rtpCapabilities: this.device.rtpCapabilities,
+            rtpCapabilities: device.rtpCapabilities,
             appData,
           },
           channel,
           async (data: ConsumerOptions) => {
             const consumer = await rcvTransport.consume(data);
 
-            const peerRemoteVideo = document.getElementById(
-              userId
-            ) as HTMLVideoElement | null;
-            console.log(peerRemoteVideo);
+            const peerRemoteMedia = document.getElementById(userId) as
+              | HTMLVideoElement
+              | HTMLAudioElement
+              | null;
 
-            if (peerRemoteVideo) {
+            if (peerRemoteMedia) {
               let consumersForUser = this._consumersForPeer[userId] as
                 | Consumer[]
                 | undefined;
@@ -144,7 +168,6 @@ class PeerConnectionSession2 {
                   (c.appData as AppData).mediaTag ==
                     (consumer.appData as AppData).mediaTag
               );
-              console.log(consumersForUser, consumer);
 
               if (existingTrack) {
                 consumersForUser.splice(
@@ -159,7 +182,7 @@ class PeerConnectionSession2 {
               //just make sure to check all edge cases for this
               //also remember to implement screen share in this new method
 
-              this.setPeerVideo(userId);
+              this.setPeerMedia(userId);
             }
             console.log("consumed");
           }
@@ -168,19 +191,27 @@ class PeerConnectionSession2 {
     );
     this.socket.emit("send-produced", channel);
 
-    this._channel = channel;
+    setTimeout(
+      () => this.socket.emit("send-message", { content: "hey there" }, channel),
+      4000
+    );
+
+    return {
+      audioMuted: audioProducer.paused,
+      videoMuted: videoProducer?.paused,
+    };
   };
 
-  private setPeerVideo = (userId: string) => {
+  private setPeerMedia = (userId: string) => {
     const consumersForUser = this._consumersForPeer[userId] as
       | Consumer[]
       | undefined;
-    const peerRemoteVideo = document.getElementById(
-      userId
-    ) as HTMLVideoElement | null;
-    console.log(peerRemoteVideo);
+    const peerRemoteMedia = document.getElementById(userId) as
+      | HTMLVideoElement
+      | HTMLAudioElement
+      | null;
 
-    if (!consumersForUser || !peerRemoteVideo) return;
+    if (!consumersForUser || !peerRemoteMedia) return;
 
     const consumerTracks = consumersForUser.map((c) => c.track);
     const videoTrackNotScreen = consumersForUser.find(
@@ -193,23 +224,16 @@ class PeerConnectionSession2 {
     )?.track;
 
     if (videoTrackScreen && videoTrackNotScreen) {
-      console.log("yesp", consumerTracks);
-
-      consumerTracks.splice(
-        consumerTracks.indexOf(videoTrackNotScreen),
-        1,
-        videoTrackScreen
-      );
-
-      console.log(consumerTracks);
+      consumerTracks.splice(consumerTracks.indexOf(videoTrackNotScreen), 1);
     }
     const stream = new MediaStream(consumerTracks);
 
-    peerRemoteVideo.srcObject = stream;
-    console.log(consumersForUser.map((c) => c.track));
+    peerRemoteMedia.srcObject = stream;
   };
 
   removeConsumer = (userId: string, producerId: string) => {
+    console.log(this._consumersForPeer, userId, " ón remove");
+
     const consumersForUser = this._consumersForPeer[userId] as
       | Consumer[]
       | undefined;
@@ -220,14 +244,16 @@ class PeerConnectionSession2 {
 
     if (consumer) {
       consumersForUser.splice(consumersForUser.indexOf(consumer), 1);
-      this.setPeerVideo(userId);
+      this.setPeerMedia(userId);
     }
   };
 
   onAddUser = (callback: (user: SignalingUser) => void) => {
-    this.socket.on(`add-user`, ({ user }: { user: SignalingUser }) =>
-      callback(user)
-    );
+    console.log("onadd");
+
+    this.socket.on(`add-user`, ({ user }: { user: SignalingUser }) => {
+      return callback(user);
+    });
   };
 
   onRemoveUser = (callback: (socketId: string) => void) => {
@@ -239,6 +265,7 @@ class PeerConnectionSession2 {
   onUpdateUserList = (
     callback: (users: SignalingUser[], current: SignalingUser) => void
   ) => {
+    console.log("onup");
     this.socket.on(
       `update-user-list`,
       ({
@@ -264,7 +291,26 @@ class PeerConnectionSession2 {
       callback(shareData)
     );
 
+  onReceiveMessage = (callback: (message: SignalingMessage) => void) => {
+    this.socket.on(`receive-message`, (message: SignalingMessage) =>
+      callback(message)
+    );
+  };
+
+  replaceProducedTrack = async (
+    track: MediaStreamTrack,
+    mediaTag?: keyof Pick<AppData, "mediaTag">
+  ) => {
+    const producer = this._producers.find(
+      (p) => p.kind == track.kind && (p.appData as AppData).mediaTag == mediaTag
+    );
+    if (!producer) return false;
+    await producer.replaceTrack({ track });
+    return true;
+  };
+
   toggleVideoMute = () => {
+    if (this.role !== "TEACHER") return;
     //it currently works to select the user media video and not screen share because that is the first video producer
     //it would always find but you may want to ensure that it doesn't select the wrong video
     const videoProducer = this._producers.find(
@@ -277,14 +323,16 @@ class PeerConnectionSession2 {
   toggleAudioMute = () => {
     const audioProducer = this._producers.find((p) => p.kind === "audio");
     if (!audioProducer) return;
+
     return this.toggleMute(audioProducer);
   };
 
   toggleMute = async (producer: Producer) => {
     const isMuted = producer.paused;
+
     //it currently doesnt fail eg if wrong producer id
     //the promise is just stuck if there's an error. you need to
-    //log into errors for emits
+    //look into errors for emits
 
     if (isMuted) producer.resume();
     else producer.pause();
@@ -302,6 +350,8 @@ class PeerConnectionSession2 {
   };
 
   shareScreen = async (stream: MediaStream) => {
+    if (this.role !== "TEACHER") return;
+
     const track = stream.getVideoTracks()[0];
 
     const producer = await this.produceTrack(track, {
@@ -321,12 +371,14 @@ class PeerConnectionSession2 {
   };
 
   cancelScreenShare = async () => {
+    if (this.role !== "TEACHER") return;
+
     const producer = this._producers.find(
       (p) => (p.appData as AppData).mediaTag === "screen"
     );
     if (!producer) return;
     producer.close();
-    this._producers = this._producers.filter((p) => p.id == producer.id);
+    this._producers = this._producers.filter((p) => p.id !== producer.id);
 
     await new Promise((resolve) =>
       this.socket.emit(
@@ -339,6 +391,7 @@ class PeerConnectionSession2 {
   };
 
   produceTrack = async (track: MediaStreamTrack, appData?: AppData) => {
+    if (track.kind == "video" && this.role !== "TEACHER") return;
     if (!this._transports.send) return;
     const producer = await this._transports.send.produce({ track, appData });
     this._producers.push(producer);
@@ -355,9 +408,10 @@ class PeerConnectionSession2 {
   };
 }
 
-export default function createPeerConnectionContext2(device: Device) {
-  const socket = io(Constants.apiBaseUrl + "/signaling2", {
+export default function createPeerConnectionContext2(role: SignalingUserRole) {
+  const socket = io(`${Constants.apiBaseUrl}/signaling2`, {
     transports: ["websocket"],
   });
-  return new PeerConnectionSession2(socket, device);
+
+  return new PeerConnectionSession2(socket, role);
 }

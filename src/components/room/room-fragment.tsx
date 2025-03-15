@@ -15,19 +15,34 @@ export type SkillMatch = {
 };
 
 export type Message = {
+  id: number;
+  type: "TEXT" | "LIVE";
+  textMessage?: TextMessage;
+  liveMessage?: LiveMessage;
   sender: {
     id: number;
     name: string;
     bio: string | null;
     avatarUrl: string | null;
   };
-  id: number;
   createdAt: string;
   updatedAt: string;
   senderId: number;
-  content: string;
   exchangeRoomId: number;
 };
+
+type TextMessage = {
+  id: number;
+  text: string;
+};
+
+type LiveMessage = {
+  id: number;
+  channelId: string;
+  session: MiniSession;
+};
+
+type MiniSession = { startedAt: Date; endedAt?: Date };
 
 export default async function RoomFragment({ id }: { id: string }) {
   const res = await axios.get(

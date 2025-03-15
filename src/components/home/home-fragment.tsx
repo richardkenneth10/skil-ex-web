@@ -53,7 +53,6 @@ type MatchWTCategory = {
 
 // export const getServerSideProps = (async () => {
 //   const matches: Match[] = (await axios.get("/skills/matches")).data;
-//   console.log(matches + "mat");
 
 //   return { props: { matches } };
 // }) satisfies GetServerSideProps<{ matches: Match[] }>;
