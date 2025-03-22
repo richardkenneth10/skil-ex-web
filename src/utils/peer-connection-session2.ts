@@ -8,6 +8,7 @@ import {
   Consumer,
   ConsumerOptions,
   Device,
+  MediaKind,
   Producer,
   RtpCapabilities,
   Transport,
@@ -19,8 +20,10 @@ import Constants from "./constants";
 type TrackMuteToggleData = {
   userId: string;
   producerId: string;
+  kind: MediaKind;
   mute: boolean;
 };
+// type TrackMuteToggleDataWithKind =TrackMuteToggleData&{kind:MediaKind}
 type ScreenShareToggleData = {
   userId: string;
   producerId: string;
@@ -95,14 +98,22 @@ export class PeerConnectionSession2 {
     });
 
     const audioTrack = stream.getAudioTracks()[0];
-    //since the tracks 'enabled' property have been set by now, the producers will by default be muted or unmuted
-    const audioProducer = (await this.produceTrack(audioTrack))!;
+
+    //since track 'enabled' prop is used together with the producer 'paused' prop for muting, let us tie this so that we also inform the server producer of the mute state since it does not naturally inherit the client paused state
+    //if the producer 'paused' prop will no longer be used together, we can just pass a variable in here that tells us if the track is paused or not
+
+    //since the tracks 'enabled' property have been set by now, the producers will by default be muted or unmuted on the client
+    const audioProducer = (await this.produceTrack(audioTrack, {
+      initiallyPaused: !audioTrack.enabled,
+    }))!;
 
     let videoProducer: Producer<AppData> | undefined;
 
     if (this.role === "TEACHER") {
       const videoTrack = stream.getVideoTracks()[0];
-      videoProducer = await this.produceTrack(videoTrack);
+      videoProducer = await this.produceTrack(videoTrack, {
+        initiallyPaused: !videoTrack.enabled,
+      });
     }
 
     const rcvTransportInfo = await new Promise<TransportOptions>((resolve) =>
@@ -191,10 +202,8 @@ export class PeerConnectionSession2 {
     );
     this.socket.emit("send-produced", channel);
 
-    setTimeout(
-      () => this.socket.emit("send-message", { content: "hey there" }, channel),
-      4000
-    );
+    // setTimeout(() => this.socket.emit("start-record", channel), 4000);
+    // setTimeout(() => this.socket.emit("stop-record", channel), 30000);
 
     return {
       audioMuted: audioProducer.paused,
@@ -202,7 +211,7 @@ export class PeerConnectionSession2 {
     };
   };
 
-  private setPeerMedia = (userId: string) => {
+  setPeerMedia = (userId: string) => {
     const consumersForUser = this._consumersForPeer[userId] as
       | Consumer[]
       | undefined;
@@ -390,11 +399,36 @@ export class PeerConnectionSession2 {
     );
   };
 
+  startRecord = async () => {
+    // if (this.role !== "LEARNER") return;
+
+    const started = await new Promise<boolean>((resolve) =>
+      this.socket.emit("start-record", this._channel, resolve)
+    );
+    return started;
+  };
+
+  stopRecord = async () => {
+    // if (this.role !== "LEARNER") return;
+
+    const ended = await new Promise<boolean>((resolve) =>
+      this.socket.emit("stop-record", this._channel, resolve)
+    );
+    return ended;
+  };
+
   produceTrack = async (track: MediaStreamTrack, appData?: AppData) => {
     if (track.kind == "video" && this.role !== "TEACHER") return;
     if (!this._transports.send) return;
-    const producer = await this._transports.send.produce({ track, appData });
+    const producer = await this._transports.send.produce({
+      track,
+      appData,
+      disableTrackOnPause: true,
+      zeroRtpOnPause: false,
+    });
     this._producers.push(producer);
+    console.log(producer.paused);
+
     return producer;
   };
 

@@ -55,10 +55,10 @@ export default function LiveFragment({
   });
 
   useEffect(() => {
-    if (localVideoRef.current) {
+    if (localVideoRef.current && !isVideoMuted) {
       localVideoRef.current.srcObject = userMediaStream;
     }
-  }, [setupDone, userMediaStream]);
+  }, [setupDone, userMediaStream, isVideoMuted]);
 
   useEffect(() => {
     const defaultMicrophone =

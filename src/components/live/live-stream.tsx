@@ -3,13 +3,14 @@
 import { StreamInfoResData } from "@/app/live/[channelId]/page";
 import LocalVideo from "@/components/video/local-video";
 import useStartPeerSession2 from "@/hooks/use-start-peer-session2";
-import { RefObject, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import RemoteAudio from "../video/remote-audio";
 import RemoteVideo from "../video/remote-video";
 import DeviceSelectMini from "./device-select-mini";
 import DraggableUser from "./draggable-user";
 import FullContainer from "./full-container";
 import { Devices } from "./live-fragment";
+import OtherControl from "./other-control";
 import User from "./user";
 
 export default function LiveStream({
@@ -56,6 +57,10 @@ export default function LiveStream({
     isAudioMuted,
     toggleMuteVideo,
     isVideoMuted,
+    startRemoteRecord,
+    stopRemoteRecord,
+    isRecordingRemotely,
+    peerVideoConnection,
   } = useStartPeerSession2(
     streamInfo.user.role,
     channelId!,
@@ -63,6 +68,9 @@ export default function LiveStream({
     localVideoRef,
     selectedSpeaker
   );
+
+  const microphoneCompletelyMuted = isMicrophoneMuted && isAudioMuted;
+  const cameraCompletelyMuted = isCameraMuted && isVideoMuted;
   // const [isFullScreen, setIsFullScreen] = useState(false);
 
   const userIsTeacher = streamInfo.user.role === "TEACHER";
@@ -70,6 +78,11 @@ export default function LiveStream({
   const handleScreenShare = async () => {
     if (isScreenShared) await cancelScreenSharing();
     else await shareScreen();
+  };
+
+  const handleRemoteRecording = async () => {
+    if (isRecordingRemotely) await stopRemoteRecord();
+    else await startRemoteRecord();
   };
 
   // const handleFullScreen = async () => {
@@ -92,30 +105,42 @@ export default function LiveStream({
     await toggleMuteVideo();
   };
 
+  useEffect(() => {
+    if (!peerVideoConnection) return;
+    for (const user of connectedUsers)
+      peerVideoConnection.setPeerMedia(user.id);
+  }, [connectedUsers, peerVideoConnection]);
+
   return (
     <div>
-      <div ref={mainRef} className="relative h-screen w-screen">
+      <div ref={mainRef} className="relative h-screen w-screen bg-black">
         <div className="">
-          {streamInfo.user.role === "TEACHER" ? (
+          {streamInfo.user.role === "TEACHER" && !cameraCompletelyMuted ? (
             <FullContainer>
               <LocalVideo ref={localVideoRef} autoPlay playsInline muted />
             </FullContainer>
-          ) : connectedUsers.length == 0 ? (
-            <User user={streamInfo.user.user} />
+          ) : cameraCompletelyMuted || connectedUsers.length == 0 ? (
+            <User user={streamInfo.user} />
           ) : (
-            <DraggableUser user={streamInfo.user.user} />
+            <DraggableUser user={streamInfo.user} isCurrentUser={true} />
           )}
-          {connectedUsers.map((user) =>
-            user.role === "TEACHER" ? (
-              <FullContainer key={user.id}>
-                <RemoteVideo id={user.id} autoPlay playsInline />
-              </FullContainer>
-            ) : (
-              <DraggableUser key={user.id} user={user.user}>
-                <RemoteAudio id={user.id} autoPlay playsInline />
-              </DraggableUser>
-            )
-          )}
+          {connectedUsers.map((user) => (
+            <div key={user.id}>
+              {user.role === "TEACHER" ? (
+                <FullContainer audioMuted={!!user.muted?.audio}>
+                  {!(user.muted && user.muted.video) ? (
+                    <RemoteVideo id={user.id} autoPlay playsInline />
+                  ) : (
+                    <User user={user} />
+                  )}
+                </FullContainer>
+              ) : (
+                <DraggableUser user={user} isCurrentUser={false}>
+                  <RemoteAudio id={user.id} autoPlay playsInline />
+                </DraggableUser>
+              )}
+            </div>
+          ))}
         </div>
         <div className="absolute bottom-5 left-0 right-0 flex justify-center items-center gap-3">
           <DeviceSelectMini
@@ -128,22 +153,31 @@ export default function LiveStream({
               if (idx == 0) onSelectMicrophone(deviceId);
               else if (idx == 1) onSelectSpeaker(deviceId);
             }}
-            muted={isMicrophoneMuted && isAudioMuted}
+            muted={microphoneCompletelyMuted}
             toggleMute={microphoneMuteToggleHandler}
           />
           {userIsTeacher && (
-            <DeviceSelectMini
-              devices={[{ type: "camera", devices: cameras }]}
-              selectedDeviceId={[selectedCamera]}
-              onSelect={(deviceId) => {
-                onSelectCamera(deviceId);
-              }}
-              muted={isCameraMuted && isVideoMuted}
-              toggleMute={cameraMuteToggleHandler}
-            />
-          )}
-          {userIsTeacher && (
-            <button onClick={handleScreenShare}>Share screen</button>
+            <>
+              <DeviceSelectMini
+                devices={[{ type: "camera", devices: cameras }]}
+                selectedDeviceId={[selectedCamera]}
+                onSelect={(deviceId) => {
+                  onSelectCamera(deviceId);
+                }}
+                muted={cameraCompletelyMuted}
+                toggleMute={cameraMuteToggleHandler}
+              />
+              <OtherControl
+                type="screen-share"
+                isOn={isScreenShared}
+                onOnToggle={handleScreenShare}
+              />
+              <OtherControl
+                type="record"
+                isOn={isRecordingRemotely}
+                onOnToggle={handleRemoteRecording}
+              />
+            </>
           )}
           {/* <VideoControls
             isScreenShared={isScreenShared}

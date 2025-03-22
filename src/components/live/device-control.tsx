@@ -1,9 +1,4 @@
-import {
-  MouseEvent as ReactMouseEvent,
-  RefObject,
-  useEffect,
-  useRef,
-} from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import {
   PiMicrophone,
@@ -11,8 +6,7 @@ import {
   PiVideoCamera,
   PiVideoCameraSlash,
 } from "react-icons/pi";
-
-export type VideoDeviceType = "camera";
+import ControlButton from "./control-button";
 
 export default function DeviceControl({
   type,
@@ -31,10 +25,7 @@ export default function DeviceControl({
 }) {
   const selectButtonRef = useRef<HTMLButtonElement>(null);
 
-  const toggleMuteHandler = (e: ReactMouseEvent) => {
-    e.stopPropagation();
-    onMuteToggle(!isMuted);
-  };
+  const toggleMuteHandler = () => onMuteToggle(!isMuted);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -72,34 +63,21 @@ export default function DeviceControl({
           </div>
         </div>
       </button>
-      <button
+      <ControlButton
+        type="device"
+        icon={
+          type === "audio"
+            ? !isMuted
+              ? PiMicrophone
+              : PiMicrophoneSlash
+            : !isMuted
+            ? PiVideoCamera
+            : PiVideoCameraSlash
+        }
+        selected={isMuted}
         onClick={toggleMuteHandler}
-        className="absolute -right-1 top-1/2 -translate-y-1/2 bg-gray-500 rounded-full w-[60%] aspect-square hover:bg-gray-400"
-      >
-        {type === "audio" ? (
-          !isMuted ? (
-            <PiMicrophone
-              className="h-full w-full p-3 rounded-full"
-              color="white"
-            />
-          ) : (
-            <PiMicrophoneSlash
-              className="h-full w-full p-3 rounded-full bg-red-700"
-              color="white"
-            />
-          )
-        ) : !isMuted ? (
-          <PiVideoCamera
-            className="h-full w-full p-3 rounded-full"
-            color="white"
-          />
-        ) : (
-          <PiVideoCameraSlash
-            className="h-full w-full p-3 rounded-full bg-red-700"
-            color="white"
-          />
-        )}
-      </button>
+        className="absolute -right-1 top-1/2 -translate-y-1/2"
+      />
     </div>
   );
 }

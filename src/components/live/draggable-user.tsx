@@ -1,13 +1,16 @@
-import { IMiniUser } from "@/app/interfaces/user/user";
+import { SignalingUser } from "@/app/interfaces/user/user";
 import { useEffect, useRef, useState } from "react";
+import { PiMicrophone, PiMicrophoneSlash } from "react-icons/pi";
 import User from "./user";
 
 export default function DraggableUser({
   children,
   user,
+  isCurrentUser,
 }: {
   children?: React.ReactNode;
-  user: IMiniUser;
+  user: SignalingUser;
+  isCurrentUser: boolean;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -46,9 +49,13 @@ export default function DraggableUser({
     setDragging(true);
   };
 
+  const Icon = user.muted?.audio ? PiMicrophoneSlash : PiMicrophone;
+
   return (
-    <div>
+    <div className="relative">
       {children}
+      {/* for now */}
+
       <User
         user={user}
         onMouseDown={handleMouseDown}
@@ -61,7 +68,17 @@ export default function DraggableUser({
         }`}
         size="15vw"
         ref={ref}
-      />
+      >
+        {!isCurrentUser && (
+          <Icon
+            className={`absolute top-2 right-2 rounded-full p-1 h-[20%] w-[20%] ${
+              !user.muted?.audio
+                ? "bg-gray-800 text-white"
+                : "bg-white text-black"
+            }`}
+          />
+        )}
+      </User>
     </div>
 
     // <div

@@ -1,18 +1,22 @@
-import { IMiniUser } from "@/app/interfaces/user/user";
+import { SignalingUser } from "@/app/interfaces/user/user";
 import Image from "next/image";
-import { HTMLAttributes, Ref } from "react";
+import React, { HTMLAttributes, Ref } from "react";
 
 export default function User({
-  user: { name, avatarUrl },
+  user: {
+    user: { name, avatarUrl },
+  },
   className,
   onMouseDown,
   style,
   size,
   ref,
+  children,
 }: {
-  user: IMiniUser;
+  user: SignalingUser;
   size?: number | string;
   ref?: Ref<HTMLDivElement>;
+  children?: React.ReactNode;
 } & Pick<
   HTMLAttributes<HTMLDivElement>,
   "className" | "onMouseDown" | "style"
@@ -24,6 +28,7 @@ export default function User({
       onMouseDown={onMouseDown}
       ref={ref}
     >
+      {children}
       <div className="rounded-full h-[60%] aspect-square overflow-hidden bg-pink-700 flex justify-center items-center">
         {avatarUrl ? (
           <Image

@@ -23,6 +23,7 @@ export type SignalingUser = {
   id: string;
   role: SignalingUserRole;
   user: IMiniUser;
+  muted?: { audio?: boolean; video?: boolean };
 };
 
 export type SignalingMessage = {

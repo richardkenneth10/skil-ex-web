@@ -23,6 +23,7 @@ export default function useStartPeerSession2(
   const [connectedUsers, setConnectedUsers] = useState<SignalingUser[]>([]);
   const [messages, setMessages] = useState<SignalingMessage[]>([]);
   const [connectionSetup, setConnectionSetup] = useState(false);
+  const [isRecordingRemotely, setIsRecordingRemotely] = useState(false);
 
   const [peerVideoConnection, setPeerVideoConnection] =
     useState<PeerConnectionSession2 | null>(null);
@@ -61,6 +62,12 @@ export default function useStartPeerSession2(
       });
 
       peerVideoConnection.onTrackMuteToggled((trackData) => {
+        setConnectedUsers((users) => {
+          const user = users.find((u) => u.id === trackData.userId);
+          if (user)
+            user.muted = { ...user.muted, [trackData.kind]: trackData.mute };
+          return [...users];
+        });
         console.log(trackData);
       });
 
@@ -162,6 +169,17 @@ export default function useStartPeerSession2(
     if (res) setVideoMuted(res.muted);
   };
 
+  const startRemoteRecord = async () => {
+    if (!peerVideoConnection) return;
+    const started = await peerVideoConnection.startRecord();
+    if (started) setIsRecordingRemotely(true);
+  };
+  const stopRemoteRecord = async () => {
+    if (!peerVideoConnection) return;
+    const ended = await peerVideoConnection.stopRecord();
+    if (ended) setIsRecordingRemotely(false);
+  };
+
   return {
     connectedUsers,
     messages,
@@ -173,5 +191,8 @@ export default function useStartPeerSession2(
     isAudioMuted: audioMuted,
     toggleMuteVideo,
     isVideoMuted: videoMuted,
+    startRemoteRecord,
+    stopRemoteRecord,
+    isRecordingRemotely,
   };
 }

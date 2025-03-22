@@ -1,1 +1,1 @@
-export type AppData = { mediaTag?: "screen" };
+export type AppData = { mediaTag?: "screen"; initiallyPaused?: boolean };
