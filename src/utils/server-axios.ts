@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import Constants from "./constants";
 
 const axios = axiosStatic.create({
-  baseURL: "https://skil-ex-production.up.railway.app/",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   withCredentials: true,
 });
 

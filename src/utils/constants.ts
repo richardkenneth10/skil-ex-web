@@ -10,7 +10,7 @@ import { FaHouse } from "react-icons/fa6";
 import logout from "./logout";
 
 export default class Constants {
-  static apiBaseUrl = "https://localhost:3000";
+  static apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   static accessTokenKey = "accessToken";
   static refreshTokenKey = "refreshToken";
   static navItems = [
