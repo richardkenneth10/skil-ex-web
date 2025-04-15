@@ -57,9 +57,9 @@ export default function LiveStream({
     isAudioMuted,
     toggleMuteVideo,
     isVideoMuted,
-    startRemoteRecord,
-    stopRemoteRecord,
-    isRecordingRemotely,
+    // startLocalRecord,
+    // stopLocalRecord,
+    // isRecordingLocally,
     peerVideoConnection,
   } = useStartPeerSession2(
     streamInfo.user.role,
@@ -80,10 +80,10 @@ export default function LiveStream({
     else await shareScreen();
   };
 
-  const handleRemoteRecording = async () => {
-    if (isRecordingRemotely) await stopRemoteRecord();
-    else await startRemoteRecord();
-  };
+  // const handleLocalRecording = async () => {
+  //   if (isRecordingLocally) await stopLocalRecord();
+  //   else await startLocalRecord();
+  // };
 
   // const handleFullScreen = async () => {
   //   setIsFullScreen((v) => {
@@ -172,11 +172,11 @@ export default function LiveStream({
                 isOn={isScreenShared}
                 onOnToggle={handleScreenShare}
               />
-              <OtherControl
+              {/* <OtherControl
                 type="record"
-                isOn={isRecordingRemotely}
-                onOnToggle={handleRemoteRecording}
-              />
+                isOn={isRecordingLocally}
+                onOnToggle={handleLocalRecording}
+              /> */}
             </>
           )}
           {/* <VideoControls

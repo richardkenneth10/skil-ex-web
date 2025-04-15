@@ -80,7 +80,7 @@ export default function LiveSetup({
   };
 
   return (
-    <div className="grid grid-cols-[65%_35%] p-10 h-screen">
+    <div className="md:grid grid-cols-[65%_35%] p-10 h-screen">
       <div className="relative h-full">
         {userIsTeacher ? (
           <div className="rounded-3xl overflow-clip absolute top-1/2 -translate-y-1/2 left-0 w-full">

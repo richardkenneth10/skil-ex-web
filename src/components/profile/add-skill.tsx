@@ -29,7 +29,7 @@ export default function AddSkill({
 
   useEffect(() => {
     onChange(addedSkills);
-  }, [addedSkills]);
+  }, [addedSkills, onChange]);
 
   const getSkills = async () => {
     setFetchingSkills(true);

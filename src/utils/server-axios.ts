@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import Constants from "./constants";
 
 const axios = axiosStatic.create({
-  baseURL: "https://localhost:3000",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   withCredentials: true,
 });
 
@@ -37,7 +37,8 @@ axios.interceptors.response.use(
   async (error: AxiosError) => {
     console.error("Axios Error:", error.response?.data || error.message);
     if (
-      (error.response?.data as unknown)?.statusCode === 401 &&
+      (error.response?.data as unknown as { statusCode: number })
+        ?.statusCode === 401 &&
       error.config?.url != "/auth/logout"
     ) {
       try {

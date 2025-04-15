@@ -1,5 +1,6 @@
 import AuthFragment from "@/components/auth/auth-fragment";
 import { Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Authentication",
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function AuthPage() {
-  return <AuthFragment />;
+  return (
+    //suspense should wrap 'useSearchParams()'
+    <Suspense>
+      <AuthFragment />
+    </Suspense>
+  );
 }

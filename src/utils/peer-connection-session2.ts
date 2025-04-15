@@ -39,6 +39,10 @@ export class PeerConnectionSession2 {
   private _consumersForPeer: Record<string, Consumer[]> = {};
   private _producers: Producer[] = [];
   private _transports: { send?: Transport; receive?: Transport } = {};
+  private _localRecord?: {
+    recorder: MediaRecorder;
+    dest: MediaStreamAudioDestinationNode;
+  };
   socket: Socket;
   role: SignalingUserRole;
   peerConnections: Record<string, RTCPeerConnection> = {};
@@ -55,8 +59,9 @@ export class PeerConnectionSession2 {
   ) => {
     console.log("joining", channel, this.socket);
 
-    const { routerRtpCapabilities, role } = await new Promise<{
+    const { routerRtpCapabilities, isRecording, role } = await new Promise<{
       role: SignalingUserRole;
+      isRecording: boolean;
       routerRtpCapabilities: RtpCapabilities;
     }>((resolve) => this.socket.emit("join-channel", channel, resolve));
 
@@ -208,19 +213,16 @@ export class PeerConnectionSession2 {
     return {
       audioMuted: audioProducer.paused,
       videoMuted: videoProducer?.paused,
+      isRecording,
     };
   };
 
-  setPeerMedia = (userId: string) => {
+  private _getPeerStream = (userId: string) => {
     const consumersForUser = this._consumersForPeer[userId] as
       | Consumer[]
       | undefined;
-    const peerRemoteMedia = document.getElementById(userId) as
-      | HTMLVideoElement
-      | HTMLAudioElement
-      | null;
 
-    if (!consumersForUser || !peerRemoteMedia) return;
+    if (!consumersForUser) return;
 
     const consumerTracks = consumersForUser.map((c) => c.track);
     const videoTrackNotScreen = consumersForUser.find(
@@ -236,8 +238,26 @@ export class PeerConnectionSession2 {
       consumerTracks.splice(consumerTracks.indexOf(videoTrackNotScreen), 1);
     }
     const stream = new MediaStream(consumerTracks);
+    return { stream, consumerTracks };
+  };
 
-    peerRemoteMedia.srcObject = stream;
+  setPeerMedia = (userId: string) => {
+    const peerRemoteMedia = document.getElementById(userId) as
+      | HTMLVideoElement
+      | HTMLAudioElement
+      | null;
+    if (!peerRemoteMedia) return;
+
+    const streamData = this._getPeerStream(userId);
+    if (!streamData) return;
+
+    if (this._localRecord) {
+      for (const track of streamData.consumerTracks) {
+        this._localRecord.dest.stream.addTrack(track);
+      }
+    }
+
+    peerRemoteMedia.srcObject = streamData.stream;
   };
 
   removeConsumer = (userId: string, producerId: string) => {
@@ -414,6 +434,83 @@ export class PeerConnectionSession2 {
     const ended = await new Promise<boolean>((resolve) =>
       this.socket.emit("stop-record", this._channel, resolve)
     );
+    return ended;
+  };
+
+  startLocalRecord = async (userMediaStream: MediaStream) => {
+    console.log("yeap");
+
+    const audioContext = new AudioContext();
+
+    const dest = audioContext.createMediaStreamDestination();
+
+    const audioSource = audioContext.createMediaStreamSource(userMediaStream);
+    audioSource.connect(dest);
+
+    const videoTrack = userMediaStream.getVideoTracks()[0];
+    if (videoTrack) dest.stream.addTrack(videoTrack);
+    // const stream = userMediaStream;
+
+    for (const userId of Object.keys(this._consumersForPeer)) {
+      const peerStreamData = this._getPeerStream(userId);
+      console.log(peerStreamData);
+
+      if (!peerStreamData) return;
+      const audioSource = audioContext.createMediaStreamSource(
+        peerStreamData.stream
+      );
+      audioSource.connect(dest);
+
+      // for (const track of peerStreamData.stream.getVideoTracks()) {
+      //   // stream.addTrack(track);
+      // }
+    }
+    console.log(dest.stream.getTracks());
+
+    // const recorder=new MultiStreamRecorder
+
+    const recorder = new MediaRecorder(dest.stream);
+    const recordedChunks: Blob[] = [];
+
+    recorder.ondataavailable = (event) =>
+      event.data.size > 0 ? recordedChunks.push(event.data) : null;
+
+    recorder.onstop = () => {
+      const blob = new Blob(
+        recordedChunks
+        // { type: "video/webm" }
+      );
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${this._channel}-${Date.now()}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    console.log("b4");
+
+    const started = await new Promise<boolean>((resolve) => {
+      this.socket.emit("start-local-record", this._channel);
+      //undo
+      resolve(true);
+    });
+    console.log("af");
+
+    this._localRecord = { recorder, dest };
+    recorder.start();
+    return started;
+  };
+
+  stopLocalRecord = async () => {
+    if (!this._localRecord) return;
+    this._localRecord.recorder.stop();
+    const ended = await new Promise<boolean>((resolve) => {
+      this.socket.emit("stop-local-record", this._channel);
+      //undo
+      resolve(true);
+    });
     return ended;
   };
 

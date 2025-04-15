@@ -133,7 +133,7 @@ export default function ClientProfileFragment({
             size="7rem"
             url={formData.avatarUrl}
           />
-          <button type="button" onClick={(_) => avatarRef.current?.click()}>
+          <button type="button" onClick={() => avatarRef.current?.click()}>
             <FaRegEdit
               className="absolute top-1 right-1 h-5 w-5"
               color="#000000"

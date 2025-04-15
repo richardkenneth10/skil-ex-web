@@ -1,7 +1,7 @@
 import axiosStatic from "axios";
 
 const axios = axiosStatic.create({
-  baseURL: "https://localhost:3000",
+  baseURL: process.env.API_BASE_URL,
   withCredentials: true,
   //   timeout: 10000,
   //   headers: {

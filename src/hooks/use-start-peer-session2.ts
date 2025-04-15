@@ -24,6 +24,7 @@ export default function useStartPeerSession2(
   const [messages, setMessages] = useState<SignalingMessage[]>([]);
   const [connectionSetup, setConnectionSetup] = useState(false);
   const [isRecordingRemotely, setIsRecordingRemotely] = useState(false);
+  const [isRecordingLocally, setIsRecordingLocally] = useState(false);
 
   const [peerVideoConnection, setPeerVideoConnection] =
     useState<PeerConnectionSession2 | null>(null);
@@ -81,17 +82,19 @@ export default function useStartPeerSession2(
       );
 
       //last so that the listeners are already set for events that will be emitted during join
-      const { audioMuted, videoMuted } = await peerVideoConnection.joinChannel(
-        new Device(),
-        channel,
-        userMediaStream
-      );
+      const { audioMuted, videoMuted, isRecording } =
+        await peerVideoConnection.joinChannel(
+          new Device(),
+          channel,
+          userMediaStream
+        );
       if (!isMounted) {
         peerVideoConnection.clearConnections();
         return;
       }
       setAudioMuted(audioMuted);
       if (videoMuted) setVideoMuted(videoMuted);
+      setIsRecordingRemotely(isRecording);
 
       setConnectionSetup(true);
     };
@@ -180,6 +183,17 @@ export default function useStartPeerSession2(
     if (ended) setIsRecordingRemotely(false);
   };
 
+  const startLocalRecord = async () => {
+    if (!peerVideoConnection || !userMediaStream) return;
+    const started = await peerVideoConnection.startLocalRecord(userMediaStream);
+    if (started) setIsRecordingLocally(true);
+  };
+  const stopLocalRecord = async () => {
+    if (!peerVideoConnection) return;
+    const ended = await peerVideoConnection.stopLocalRecord();
+    if (ended) setIsRecordingLocally(false);
+  };
+
   return {
     connectedUsers,
     messages,
@@ -194,5 +208,8 @@ export default function useStartPeerSession2(
     startRemoteRecord,
     stopRemoteRecord,
     isRecordingRemotely,
+    startLocalRecord,
+    stopLocalRecord,
+    isRecordingLocally,
   };
 }
