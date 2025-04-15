@@ -1,7 +1,7 @@
 import axiosStatic from "axios";
 
 const axios = axiosStatic.create({
-  baseURL: process.env.API_BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   withCredentials: true,
   //   timeout: 10000,
   //   headers: {
@@ -11,6 +11,8 @@ const axios = axiosStatic.create({
 
 axios.interceptors.request.use(
   (config) => {
+    console.log(config.baseURL);
+
     return config;
   },
   (error) => {
