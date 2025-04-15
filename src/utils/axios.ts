@@ -1,7 +1,7 @@
 import axiosStatic from "axios";
 
 const axios = axiosStatic.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: "https://skil-ex-production.up.railway.app",
   withCredentials: true,
   //   timeout: 10000,
   //   headers: {
