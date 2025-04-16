@@ -33,8 +33,9 @@ axios.interceptors.response.use(
   },
   async (error: AxiosError) => {
     console.error("Axios Error:", error.response?.data || error.message);
-    const statusCode = (error.response?.data as { statusCode: number })
-      .statusCode;
+    const statusCode = (
+      error.response?.data as { statusCode: number } | undefined
+    )?.statusCode;
     if (statusCode == 401) {
       handleUnauthorized();
     }

@@ -28,8 +28,9 @@ axios.interceptors.response.use(
   },
   async (error: AxiosError) => {
     console.error("Axios Error:", error.response?.data || error.message);
-    const statusCode = (error.response?.data as { statusCode: number })
-      .statusCode;
+    const statusCode = (
+      error.response?.data as { statusCode: number } | undefined
+    )?.statusCode;
     // const originalRequest = error.config as
     //   | (InternalAxiosRequestConfig<any> & { _retry?: boolean })
     //   | undefined;

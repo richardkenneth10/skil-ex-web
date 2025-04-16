@@ -13,7 +13,6 @@ export type ProfileResData = IUser & {
 export default async function ProfileFragment() {
   const res = await axios.get("/auth/profile");
   const user: ProfileResData = res.data;
-  console.log(user);
 
   return (
     <>
