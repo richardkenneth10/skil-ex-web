@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 import Constants from "./utils/constants";
 import Routes from "./utils/routes";
@@ -16,7 +15,7 @@ export async function middleware(req: NextRequest) {
   if (!res.cookies.has(Constants.userAgentKey))
     res.cookies.set(Constants.userAgentKey, JSON.stringify(userAgent(req)));
 
-  console.log(await cookies());
+  console.log(req.cookies);
   console.log("af");
 
   const token =

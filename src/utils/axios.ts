@@ -4,9 +4,9 @@ const axios = axiosStatic.create({
   baseURL: process.env.PUBLIC_API_BASE_URL,
   withCredentials: true,
   //   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 axios.interceptors.request.use(

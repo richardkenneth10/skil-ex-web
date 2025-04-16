@@ -35,9 +35,7 @@ export default function LoginForm() {
       // const cookies=cookie()
       // cookies![0]
 
-      await setCookie(Constants.userKey, JSON.stringify(data.data), {
-        domain: process.env.PUBLIC_API_BASE_URL,
-      });
+      await setCookie(Constants.userKey, JSON.stringify(data.data));
       toast.success("You are logged in!");
       router.push(Routes.home);
     } catch (error) {
