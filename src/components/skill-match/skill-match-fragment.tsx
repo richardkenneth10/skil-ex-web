@@ -1,3 +1,4 @@
+import Constants from "@/utils/constants";
 import logger from "@/utils/logger";
 import axios from "@/utils/server-axios";
 import ClientCookie from "../(main)/client-cookie";
@@ -21,7 +22,9 @@ export default async function SkillMatchFragment({
 
   return (
     <>
-      <ClientCookie cookie={res.headers["set-cookie"]} />
+      <ClientCookie
+        tokensJSONString={res.config.headers[Constants.authTokensHeaderKey]}
+      />
       <ClientSkillMatchFragment match={match} />;
     </>
   );

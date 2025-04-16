@@ -2,10 +2,8 @@
 import "server-only";
 
 import axiosStatic, { AxiosError } from "axios";
-import { deleteCookie } from "cookies-next";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import Constants from "./constants";
+import { handleTokens, handleUnauthorized } from "./server-token";
 
 const axios = axiosStatic.create({
   baseURL: process.env.API_BASE_URL,
@@ -14,16 +12,15 @@ const axios = axiosStatic.create({
 
 axios.interceptors.request.use(
   async (config) => {
-    const cookiesStore = await cookies();
-    const _userAgent = cookiesStore.get(Constants.userAgentKey)?.value;
+    const res = await handleTokens(config);
 
-    if (_userAgent) {
-      const userAgent = JSON.parse(_userAgent);
-      config.headers.setUserAgent(userAgent.ua);
-    }
-    config.headers.set("Cookie", cookiesStore.toString());
+    if (res)
+      config.headers.set(
+        Constants.authTokensHeaderKey,
+        JSON.stringify(res.tokens)
+      );
 
-    return config;
+    return { ...config, ...(res && { signal: res.abortSignal }) };
   },
   (error) => {
     return Promise.reject(error);
@@ -36,24 +33,10 @@ axios.interceptors.response.use(
   },
   async (error: AxiosError) => {
     console.error("Axios Error:", error.response?.data || error.message);
-    if (
-      (error.response?.data as unknown as { statusCode: number })
-        ?.statusCode === 401 &&
-      error.config?.url != "/auth/logout"
-    ) {
-      try {
-        await axios.post("/auth/logout");
-      } catch (_) {
-        //ignore
-      }
-
-      console.log(error.request.cookies, " vddd");
-
-      // const cookiesStore = await cookies();
-      // cookiesStore.delete(Constants.userKey);
-      deleteCookie(Constants.userKey);
-
-      redirect("/auth?page=login");
+    const statusCode = (error.response?.data as { statusCode: number })
+      .statusCode;
+    if (statusCode == 401) {
+      handleUnauthorized();
     }
 
     return Promise.reject(error);

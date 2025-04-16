@@ -1,6 +1,7 @@
 import axios from "@/utils/axios";
 import Constants from "@/utils/constants";
 import Routes from "@/utils/routes";
+import { saveAuthTokens } from "@/utils/token";
 import { AxiosError } from "axios";
 import { setCookie } from "cookies-next";
 import { getCookies } from "cookies-next/client";
@@ -27,15 +28,17 @@ export default function LoginForm() {
     }, {} as Record<string, unknown>);
 
     try {
-      const data = await axios.post("/auth/login", dataObj);
-      console.log(data);
-      console.log(data.headers["set-cookie"]);
+      const {
+        data: { user, tokens },
+      } = await axios.post("/auth/login", dataObj);
+
       console.log(getCookies({}));
 
       // const cookies=cookie()
       // cookies![0]
 
-      await setCookie(Constants.userKey, JSON.stringify(data.data));
+      await saveAuthTokens(tokens);
+      await setCookie(Constants.userKey, JSON.stringify(user));
       toast.success("You are logged in!");
       router.push(Routes.home);
     } catch (error) {

@@ -1,4 +1,5 @@
 import { IMiniUser } from "@/app/interfaces/user/user";
+import Constants from "@/utils/constants";
 import axios from "@/utils/server-axios";
 import ClientCookie from "../(main)/client-cookie";
 import ClientRoomFragment from "./client-room-fragment";
@@ -52,7 +53,9 @@ export default async function RoomFragment({ id }: { id: string }) {
 
   return (
     <>
-      <ClientCookie cookie={res.headers["set-cookie"]} />
+      <ClientCookie
+        tokensJSONString={res.config.headers[Constants.authTokensHeaderKey]}
+      />
       <ClientRoomFragment messages={messages} skillMatch={skillMatch} />
     </>
   );

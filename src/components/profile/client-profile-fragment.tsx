@@ -7,7 +7,7 @@ import Constants from "@/utils/constants";
 import { sleep } from "@/utils/dev";
 import { AxiosError } from "axios";
 import { setCookie } from "cookies-next";
-import { ChangeEvent, FormEvent, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useRef, useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Avatar from "../(main)/avatar";
@@ -65,6 +65,15 @@ export default function ClientProfileFragment({
     skillIdsWanted: user.skillsWanted.map((s) => s.skill.id), // Start with user's current skills
     skillIdsOffered: user.skillsOffered.map((s) => s.skill.id), // Start with user's current skills
   });
+
+  const handleNewOfferedSkillsChange = useCallback(
+    (s: { skill: IMiniSkill }[]) => handleNewSkillsChange(s, "offered"),
+    []
+  );
+  const handleNewWantedSkillsChange = useCallback(
+    (s: { skill: IMiniSkill }[]) => handleNewSkillsChange(s, "wanted"),
+    []
+  );
 
   const handleNewSkillsChange = (
     s: { skill: IMiniSkill }[],
@@ -190,7 +199,7 @@ export default function ClientProfileFragment({
               get: fetchSkillsByCategoryHandler,
             }}
             existing={user.skillsWanted}
-            onChange={(s) => handleNewSkillsChange(s, "wanted")}
+            onChange={handleNewWantedSkillsChange}
           />
         </div>
         <div>
@@ -207,7 +216,7 @@ export default function ClientProfileFragment({
               get: fetchSkillsByCategoryHandler,
             }}
             existing={user.skillsOffered}
-            onChange={(s) => handleNewSkillsChange(s, "offered")}
+            onChange={handleNewOfferedSkillsChange}
           />
         </div>
         <Button text="Save" />

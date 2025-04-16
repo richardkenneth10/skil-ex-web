@@ -1,4 +1,5 @@
-import axiosStatic from "axios";
+import axiosStatic, { AxiosError } from "axios";
+import { handleTokens, handleUnauthorized } from "./token";
 
 const axios = axiosStatic.create({
   baseURL: process.env.PUBLIC_API_BASE_URL,
@@ -10,10 +11,11 @@ const axios = axiosStatic.create({
 });
 
 axios.interceptors.request.use(
-  (config) => {
+  async (config) => {
     console.log(config.baseURL);
+    const res = await handleTokens(config);
 
-    return config;
+    return { ...config, ...(res && { signal: res.abortSignal }) };
   },
   (error) => {
     return Promise.reject(error);
@@ -22,13 +24,44 @@ axios.interceptors.request.use(
 
 axios.interceptors.response.use(
   (response) => {
-    console.log(response);
-
     return response;
   },
-  (error) => {
+  async (error: AxiosError) => {
     console.error("Axios Error:", error.response?.data || error.message);
-    return Promise.reject(error);
+    const statusCode = (error.response?.data as { statusCode: number })
+      .statusCode;
+    // const originalRequest = error.config as
+    //   | (InternalAxiosRequestConfig<any> & { _retry?: boolean })
+    //   | undefined;
+    // const refresh = getCookie(Constants.refreshTokenKey)?.toString();
+    // console.log(refresh);
+    // if (
+    //   statusCode == 401 &&
+    //   refresh &&
+    //   originalRequest &&
+    //   !originalRequest?._retry
+    // ) {
+    //   originalRequest._retry = true;
+    //   try {
+    //     const tokens = await refreshToken(refresh);
+    //    await saveAuthTokens(tokens);
+    //     // axios.defaults.headers.common['Authorization'] = `Bearer ${tokens.access}`;
+    //     originalRequest.headers.setAuthorization(`Bearer ${tokens.access}`);
+    //     return axios(originalRequest);
+    //   } catch (refreshError) {
+    //     //redirect
+    //     await axios.post("/auth/logout");
+    //     // redirect("/auth?page=login");
+    //     window.location.href = "/auth/login";
+
+    //     return Promise.reject(refreshError);
+    //   }
+    // }
+    // return Promise.reject(error);
+
+    if (statusCode == 401) {
+      handleUnauthorized();
+    }
   }
 );
 

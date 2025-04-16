@@ -4,6 +4,7 @@ import {
   SignalingUser,
   SignalingUserRole,
 } from "@/app/interfaces/user/user";
+import { getCookie } from "cookies-next";
 import {
   Consumer,
   ConsumerOptions,
@@ -542,6 +543,9 @@ export class PeerConnectionSession2 {
 export default function createPeerConnectionContext2(role: SignalingUserRole) {
   const socket = io(`${Constants.apiBaseUrl}/signaling2`, {
     transports: ["websocket"],
+    auth: {
+      token: getCookie(Constants.accessTokenKey)?.toString(),
+    },
   });
 
   return new PeerConnectionSession2(socket, role);

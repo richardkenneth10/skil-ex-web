@@ -1,3 +1,4 @@
+import Constants from "@/utils/constants";
 import axios from "@/utils/server-axios";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,11 +28,14 @@ type OngoingMatch = {
 
 export default async function RoomsFragment() {
   const res = await axios.get("/skills/my-ongoing-matches");
+
   const matches: OngoingMatch[] = res.data;
 
   return (
     <>
-      <ClientCookie cookie={res.headers["set-cookie"]} />
+      <ClientCookie
+        tokensJSONString={res.config.headers[Constants.authTokensHeaderKey]}
+      />
       {matches.length == 0 ? (
         <p className="text-center">No data</p>
       ) : (
@@ -59,9 +63,10 @@ export default async function RoomsFragment() {
                         <p className="ml-4">{m.otherUser.name}</p>
                       </div>
                     </div>
+                    {/* make this client comp to stop the nested a tag error*/}
                     <Link
                       href={roomPath}
-                      className="hidden md:block border-2 px-8 py-2 rounded-3xl border-[#0086CA] pointer-events-auto"
+                      className="hidden md:block pointer-events-auto border-2 px-8 py-2 rounded-3xl border-[#0086CA]"
                     >
                       View
                     </Link>

@@ -6,10 +6,12 @@ export type IUser = {
   emailVerified: boolean;
   bio: string | null;
   avatarUrl: string | null;
-  role: "USER" | "ADMIN";
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type UserRole = "USER" | "ADMIN";
 
 export type IMiniUser = {
   id: number;

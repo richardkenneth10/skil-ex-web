@@ -9,14 +9,9 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
-  // console.log(req.cookies);
-
   //check if this condition is actually necessary
   if (!res.cookies.has(Constants.userAgentKey))
     res.cookies.set(Constants.userAgentKey, JSON.stringify(userAgent(req)));
-
-  console.log(req.cookies);
-  console.log("af");
 
   const token =
     req.cookies.get(Constants.accessTokenKey) ||

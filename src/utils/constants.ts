@@ -28,4 +28,5 @@ export default class Constants {
   };
   static userKey = "user";
   static userAgentKey = "userAgent";
+  static authTokensHeaderKey = "Authentication-Tokens";
 }

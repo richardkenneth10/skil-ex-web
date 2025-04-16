@@ -1,9 +1,11 @@
 import { Message } from "@/components/room/room-fragment";
+import { getCookie } from "cookies-next";
 import { io } from "socket.io-client";
 import Constants from "./constants";
 
 const socket = io(`${Constants.apiBaseUrl}/chat`, {
   transports: ["websocket"],
+  auth: { token: getCookie(Constants.accessTokenKey)?.toString() },
 });
 
 export const joinRoomChat = async (roomId: number) => {
