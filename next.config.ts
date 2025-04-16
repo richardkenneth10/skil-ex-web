@@ -14,7 +14,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: { NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL },
+  env: {
+    API_BASE_URL: process.env.API_BASE_URL,
+    PUBLIC_API_BASE_URL: process.env.PUBLIC_API_BASE_URL,
+  },
 };
 
 export default nextConfig;

@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import Constants from "./constants";
 
 const axios = axiosStatic.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: process.env.API_BASE_URL,
   withCredentials: true,
 });
 

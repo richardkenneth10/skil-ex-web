@@ -3,6 +3,7 @@ import Constants from "@/utils/constants";
 import Routes from "@/utils/routes";
 import { AxiosError } from "axios";
 import { setCookie } from "cookies-next";
+import { getCookies } from "cookies-next/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,9 +27,17 @@ export default function LoginForm() {
     }, {} as Record<string, unknown>);
 
     try {
-      const data = (await axios.post("/auth/login", dataObj)).data;
+      const data = await axios.post("/auth/login", dataObj);
+      console.log(data);
+      console.log(data.headers["set-cookie"]);
+      console.log(getCookies({}));
 
-      await setCookie(Constants.userKey, JSON.stringify(data));
+      // const cookies=cookie()
+      // cookies![0]
+
+      await setCookie(Constants.userKey, JSON.stringify(data.data), {
+        domain: process.env.PUBLIC_API_BASE_URL,
+      });
       toast.success("You are logged in!");
       router.push(Routes.home);
     } catch (error) {

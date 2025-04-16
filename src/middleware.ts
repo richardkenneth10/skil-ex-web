@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 import Constants from "./utils/constants";
 import Routes from "./utils/routes";
@@ -9,15 +10,23 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
+  // console.log(req.cookies);
+
   //check if this condition is actually necessary
   if (!res.cookies.has(Constants.userAgentKey))
     res.cookies.set(Constants.userAgentKey, JSON.stringify(userAgent(req)));
+
+  console.log(await cookies());
+  console.log("af");
 
   const token =
     req.cookies.get(Constants.accessTokenKey) ||
     req.cookies.get(Constants.refreshTokenKey);
   const _user = req.cookies.get(Constants.userKey)?.value;
   const user = _user ? (JSON.parse(_user) as Record<string, unknown>) : null;
+
+  console.log(token);
+  console.log(user);
 
   if (!token || !user) {
     return NextResponse.redirect(new URL(`${Routes.auth}?page=login`, req.url));
