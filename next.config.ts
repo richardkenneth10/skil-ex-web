@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
         ) as "https" | "http" | undefined,
         hostname:
           process.env.PUBLIC_API_BASE_URL?.substring(
-            process.env.PUBLIC_API_BASE_URL?.indexOf("://")
+            process.env.PUBLIC_API_BASE_URL?.indexOf("://") + "://".length
           ) ?? "",
       },
     ],
