@@ -52,18 +52,7 @@ type MatchWTCategory = {
   };
 };
 
-// export const getServerSideProps = (async () => {
-//   const matches: Match[] = (await axios.get("/skills/matches")).data;
-
-//   return { props: { matches } };
-// }) satisfies GetServerSideProps<{ matches: Match[] }>;
-
 export default async function HomeFragment() {
-  // const res = await axios.post(
-  //   "/api",
-  //   {},
-  //   { baseURL: "https://localhost:3001" }
-  // );
   const res = await axios.get("/skills/matches");
   const matches: MatchWTCategory[] = res.data;
 
@@ -75,15 +64,20 @@ export default async function HomeFragment() {
       {matches.length == 0 ? (
         <p className="text-center">No data</p>
       ) : (
-        <div className="bg-white min-h-full p-4">
+        <div className="min-h-full p-4">
           {matches.map((m, i) => {
             const matchPath = `home/match?otherUserId=${m.otherUser.id}&offeredSkillId=${m.offeredSkill.id}&wantedSkillId=${m.wantedSkill.id}`;
             return (
-              <Link
-                href={matchPath}
-                className="md:pointer-events-none"
+              <div
+                className="relative"
                 key={`${m.offeredSkill.id}_${m.wantedSkill.id}_${m.otherUser.id}`}
               >
+                <Link
+                  href={matchPath}
+                  className="absolute inset-0 md:pointer-events-none"
+                >
+                  {/* Empty Link to make whole card clickable on mobile, pointer-events-none on desktop */}
+                </Link>
                 <div
                   key={`${m.offeredSkill.id}_${m.wantedSkill.id}_${m.otherUser.id}`}
                 >
@@ -123,7 +117,7 @@ export default async function HomeFragment() {
                       {i % 2 == 1 ? <FaRegBookmark /> : <FaBookmark />}
                     </button>
                     <Link
-                      className="hidden md:block pointer-events-auto border-2 px-8 py-2 rounded-3xl border-[#0086CA]"
+                      className="hidden md:block pointer-events-auto border-2 px-8 py-2 rounded-3xl border-primary"
                       href={matchPath}
                     >
                       View
@@ -131,7 +125,7 @@ export default async function HomeFragment() {
                   </div>
                   <div className="bg-slate-100 h-1 rounded-md mx-4"></div>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

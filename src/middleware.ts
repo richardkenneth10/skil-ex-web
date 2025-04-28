@@ -19,9 +19,6 @@ export async function middleware(req: NextRequest) {
   const _user = req.cookies.get(Constants.userKey)?.value;
   const user = _user ? (JSON.parse(_user) as Record<string, unknown>) : null;
 
-  console.log(token);
-  console.log(user);
-
   if (!token || !user) {
     return NextResponse.redirect(new URL(`${Routes.auth}?page=login`, req.url));
   }

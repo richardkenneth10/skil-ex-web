@@ -94,12 +94,12 @@ export default function LiveSetup({
                 <button onClick={toggleMicrophoneMute}>
                   {!isMicrophoneMuted ? (
                     <PiMicrophone
-                      className="border-[1px] h-[5vw] w-[5vw] p-3 rounded-full"
+                      className="border-[1px] h-[10vw] md:h-[5vw] w-[10vw] md:w-[5vw] p-2 md:p-3 rounded-full"
                       color="white"
                     />
                   ) : (
                     <PiMicrophoneSlash
-                      className="h-[5vw] w-[5vw] p-3 rounded-full bg-red-700"
+                      className="h-[10vw] md:h-[5vw] w-[10vw] md:w-[5vw] p-2 md:p-3 rounded-full bg-red-700"
                       color="white"
                     />
                   )}
@@ -107,12 +107,12 @@ export default function LiveSetup({
                 <button onClick={toggleCameraMute}>
                   {!isCameraMuted ? (
                     <PiVideoCamera
-                      className="border-[1px] h-[5vw] w-[5vw] p-3 rounded-full"
+                      className="border-[1px] h-[10vw] md:h-[5vw] w-[10vw] md:w-[5vw] p-2 md:p-3 rounded-full"
                       color="white"
                     />
                   ) : (
                     <PiVideoCameraSlash
-                      className="h-[5vw] w-[5vw] p-3 rounded-full bg-red-700"
+                      className="h-[10vw] md:h-[5vw] w-[10vw] md:w-[5vw] p-2 md:p-3 rounded-full bg-red-700"
                       color="white"
                     />
                   )}

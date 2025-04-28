@@ -12,7 +12,7 @@ export default function Navigation() {
         width={30}
         height={30}
       />
-      <div className="flex md:block justify-around bg-[#0086CA] md:bg-transparent py-1 md:py-3 md:pr-3">
+      <div className="flex md:block justify-around bg-primary md:bg-transparent py-1 md:py-3 md:pr-3">
         {Constants.navItems.map((nav) => (
           <NavigationTile
             key={nav.title}

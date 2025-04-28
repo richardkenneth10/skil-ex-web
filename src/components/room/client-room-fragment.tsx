@@ -159,7 +159,7 @@ export default function ClientRoomFragment({
 
   return (
     <>
-      <div className="bg-gray-200 h-full">
+      <div className="bg-gray-200 dark:bg-inherit h-full">
         <div className="relative">
           <div className="md:absolute md:left-1/2 md:-translate-x-1/2 bg-primary -mx-2 -mt-2 px-2 pb-2 md:pt-2 h-12 md:h-14 flex justify-between items-center md:min-w-[70%] md:w-fit md:mx-auto md:rounded-b-lg md:z-10">
             <div className="flex items-center">
@@ -230,8 +230,8 @@ export default function ClientRoomFragment({
                     <div
                       className={`rounded-md mb-2 p-2 w-3/4 ${
                         user?.id === m.senderId
-                          ? "ml-auto rounded-tr-none bg-[#69c0ec]"
-                          : "rounded-tl-none bg-white"
+                          ? "ml-auto rounded-tr-none bg-primary-light dark:bg-primary-dark"
+                          : "rounded-tl-none bg-white dark:bg-divider"
                       } ${
                         Chat.isLiveMsgWithOngoingSession(m) && "cursor-pointer"
                       }`}
@@ -261,9 +261,11 @@ export default function ClientRoomFragment({
                           <div>
                             <p className="font-bold">{Chat.getContent(m)}</p>
                             {!m.liveMessage!.session.endedAt ? (
-                              <p className="text-gray-700">In Live session</p>
+                              <p className="text-text-secondary">
+                                In Live session
+                              </p>
                             ) : (
-                              <p className="text-gray-700">
+                              <p className="text-text-secondary">
                                 {DateTime.difference(
                                   m.liveMessage!.session.startedAt,
                                   m.liveMessage!.session.endedAt

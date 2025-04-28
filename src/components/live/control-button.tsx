@@ -17,7 +17,7 @@ export default function ControlButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full w-[5.4vw] aspect-square ${
+      className={`rounded-full w-[10.8vw] md:w-[5.4vw] aspect-square ${
         !selected
           ? "bg-gray-500 hover:bg-gray-400"
           : `${
@@ -29,14 +29,14 @@ export default function ControlButton({
     >
       <div>
         <Icon
-          className={`h-full w-full p-3 rounded-full ${
+          className={`h-full w-full p-2 md:p-3 rounded-full ${
             MobileIcon ? "hidden md:block" : ""
           }`}
           color="white"
         />
         {MobileIcon && (
           <MobileIcon
-            className={`h-full w-full p-3 rounded-full md:hidden`}
+            className={`h-full w-full p-2 md:p-3 rounded-full md:hidden`}
             color="white"
           />
         )}

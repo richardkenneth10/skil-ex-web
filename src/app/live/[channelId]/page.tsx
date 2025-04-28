@@ -23,7 +23,5 @@ export default async function LivePage({
   const res = await axios.get(`/streams/${channelId}/live-info`);
   const streamInfo: StreamInfoResData = res.data;
 
-  console.log(streamInfo);
-
   return <LiveFragment channelId={channelId} streamInfo={streamInfo} />;
 }

@@ -94,7 +94,7 @@ export default function LoginForm() {
       <br />
       <p>
         Don&apos;t have an account?{" "}
-        <Link className="text-[#0086CA]" href="?page=signup">
+        <Link className="text-primary" href="?page=signup">
           Sign up
         </Link>
       </p>

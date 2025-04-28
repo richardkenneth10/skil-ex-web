@@ -17,12 +17,12 @@ export default function NavigationTile({
     <Link href={`/${navPath}`} className="flex gap-3 my-2">
       <div
         className={`hidden md:block w-1 rounded-r-md transition-all duration-300 ${
-          isRouteTile && "bg-[#0086CA]"
+          isRouteTile && "bg-primary"
         }`}
       ></div>
       <div
-        className={`flex items-center gap-2 rounded-full md:rounded-[0.3rem] p-[0.75rem] md:py-[0.375rem] md:px-2 w-full text-white md:text-inherit hover:md:text-white hover:bg-[#005C8A] transition-all duration-300 ${
-          isRouteTile && "bg-[#69c0ec] md:bg-[#0086CA] md:text-white"
+        className={`flex items-center gap-2 rounded-full md:rounded-[0.3rem] p-[0.75rem] md:py-[0.375rem] md:px-2 w-full text-white md:text-inherit hover:md:text-white hover:bg-primary-dark transition-all duration-300 ${
+          isRouteTile && "bg-primary-light md:bg-primary md:text-white"
         }`}
       >
         <div
@@ -89,7 +89,7 @@ export default function NavigationTile({
 //     <Link
 //       href={navPath}
 //       className={`flex items-center gap-3 py-2 px-4 rounded-lg transition-all duration-300 ${
-//         isRouteTile ? "bg-[#0086CA] text-white" : "hover:scale-105 hover:bg-[#005f73]"}
+//         isRouteTile ? "bg-primary text-white" : "hover:scale-105 hover:bg-[#005f73]"}
 //       `}
 //     >
 //       <div

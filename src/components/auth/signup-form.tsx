@@ -93,7 +93,7 @@ export default function SignupForm() {
       <br />
       <p>
         Already have an account?{" "}
-        <Link className="text-[#0086CA]" href="?page=login">
+        <Link className="text-primary" href="?page=login">
           Sign in
         </Link>
       </p>

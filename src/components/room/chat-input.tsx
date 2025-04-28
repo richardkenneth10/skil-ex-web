@@ -26,7 +26,7 @@ export default function ChatInput({ ref, onSend }: ChatInputProps) {
       onSubmit={sendHandler}
     >
       <input
-        className="w-full rounded-2xl h-full outline-none p-4 pr-12 caret-[#0086CA]"
+        className="w-full rounded-2xl h-full outline-none p-4 pr-12 caret-primary"
         placeholder="Message"
         type="text"
         ref={ref}

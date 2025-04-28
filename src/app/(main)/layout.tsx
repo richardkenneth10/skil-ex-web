@@ -35,7 +35,7 @@ export default function MainLayout({
           <HeaderProvider>
             <UserProvider>
               <Header openDrawer={openDrawer} openTopDrawer={openTopDrawer} />
-              <div className="bg-slate-100 h-[calc(92vh-4.5rem)] md:h-[92vh] mt-[8vh] overflow-y-auto p-2">
+              <div className="h-[calc(92vh-4.5rem)] md:h-[92vh] mt-[8vh] overflow-y-auto p-2">
                 {children}
               </div>
             </UserProvider>

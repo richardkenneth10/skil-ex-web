@@ -52,7 +52,7 @@ export default function DeviceControl({
         ref={selectButtonRef}
       >
         <div
-          className={`flex items-center relative w-[9vw] h-[4.5vw] p-2 rounded-full hover:border-inherit text-gray-600 ${
+          className={`flex items-center relative w-[18vw] md:w-[9vw] h-[9vw] md:h-[4.5vw] p-3 md:p-2 rounded-full hover:border-inherit text-gray-600 ${
             !isMuted
               ? "bg-gray-800 hover:bg-gray-700"
               : "bg-red-300 hover:bg-red-200"

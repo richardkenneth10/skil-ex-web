@@ -39,15 +39,17 @@ export default async function RoomsFragment() {
       {matches.length == 0 ? (
         <p className="text-center">No data</p>
       ) : (
-        <div className="bg-white h-full p-4">
+        <div className="h-full p-4">
           {matches.map((m) => {
             const roomPath = `rooms/${m.exchangeRoomId}`;
             return (
-              <Link
-                href={roomPath}
-                className="md:pointer-events-none"
-                key={m.id}
-              >
+              <div className="relative" key={m.id}>
+                <Link
+                  href={roomPath}
+                  className="absolute inset-0 md:pointer-events-none"
+                >
+                  {/* Empty Link to make whole card clickable on mobile, pointer-events-none on desktop */}
+                </Link>
                 <div>
                   <div className="my-1 rounded-sm flex items-center p-2">
                     <div className="flex-1">
@@ -66,7 +68,7 @@ export default async function RoomsFragment() {
                     {/* make this client comp to stop the nested a tag error*/}
                     <Link
                       href={roomPath}
-                      className="hidden md:block pointer-events-auto border-2 px-8 py-2 rounded-3xl border-[#0086CA]"
+                      className="hidden md:block pointer-events-auto border-2 px-8 py-2 rounded-3xl border-primary"
                     >
                       View
                     </Link>
@@ -74,7 +76,7 @@ export default async function RoomsFragment() {
                   </div>
                   <div className="bg-slate-100 h-1 rounded-md mx-4"></div>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>
