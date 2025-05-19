@@ -6,6 +6,7 @@ import {
   MdOutlineStopScreenShare,
 } from "react-icons/md";
 import { PiRecord, PiRecordBold } from "react-icons/pi";
+import { TbMessage, TbMessageOff } from "react-icons/tb";
 import ControlButton from "./control-button";
 
 export default function OtherControl({
@@ -13,7 +14,7 @@ export default function OtherControl({
   isOn,
   onOnToggle,
 }: {
-  type: "screen-share" | "record";
+  type: "screen-share" | "record" | "chat";
   isOn: boolean;
   onOnToggle: (on: boolean) => void;
 }) {
@@ -27,6 +28,9 @@ export default function OtherControl({
       break;
     case "record":
       Icon = !isOn ? PiRecord : PiRecordBold;
+      break;
+    case "chat":
+      Icon = !isOn ? TbMessage : TbMessageOff;
       break;
   }
 

@@ -62,6 +62,11 @@ export default function useStartPeerSession2(
         setMessages((prev) => [...prev, m]);
       });
 
+      peerVideoConnection.onStreamEnded((m) => {
+        //show modal
+        console.log("stream ended at: ", m);
+      });
+
       peerVideoConnection.onTrackMuteToggled((trackData) => {
         setConnectedUsers((users) => {
           const user = users.find((u) => u.id === trackData.userId);
@@ -194,6 +199,11 @@ export default function useStartPeerSession2(
     if (ended) setIsRecordingLocally(false);
   };
 
+  const leaveChannel = () => {
+    if (!peerVideoConnection) return;
+    peerVideoConnection.leaveChannel();
+  };
+
   return {
     connectedUsers,
     messages,
@@ -211,5 +221,6 @@ export default function useStartPeerSession2(
     startLocalRecord,
     stopLocalRecord,
     isRecordingLocally,
+    leaveChannel,
   };
 }

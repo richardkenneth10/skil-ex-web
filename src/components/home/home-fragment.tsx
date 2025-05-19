@@ -123,7 +123,7 @@ export default async function HomeFragment() {
                       View
                     </Link>
                   </div>
-                  <div className="bg-slate-100 h-1 rounded-md mx-4"></div>
+                  <div className="bg-divider h-1 rounded-md mx-4"></div>
                 </div>
               </div>
             );

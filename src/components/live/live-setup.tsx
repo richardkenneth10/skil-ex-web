@@ -81,9 +81,9 @@ export default function LiveSetup({
 
   return (
     <div className="md:grid grid-cols-[65%_35%] p-10 h-screen">
-      <div className="relative h-full">
+      <div className="relative md:h-full">
         {userIsTeacher ? (
-          <div className="rounded-3xl overflow-clip absolute top-1/2 -translate-y-1/2 left-0 w-full">
+          <div className="rounded-3xl overflow-clip md:absolute md:top-1/2 md:-translate-y-1/2 md:left-0 w-full">
             <div className="relative">
               <LocalVideo ref={localVideoRef} autoPlay playsInline muted />
               <p className="absolute top-5 left-5 text-white font-bold text-sm">
@@ -143,7 +143,7 @@ export default function LiveSetup({
             </div>
           </>
         )}
-        <div className="absolute -bottom-5 left-0 right-0 flex items-center gap-3">
+        <div className="md:absolute -bottom-5 left-0 right-0 mt-5 md:mt-0 flex flex-wrap justify-center items-center gap-3">
           <DeviceSelect
             devices={microphones}
             selectedDeviceId={selectedMicrophone}
@@ -166,15 +166,17 @@ export default function LiveSetup({
           />
         </div>
       </div>
-      {!streamInfo.channel ? (
-        <h6>Unexpected!!! Channel does not exist</h6>
-      ) : (
-        <div className="flex flex-col justify-center items-center gap-4">
-          {formatStreamLiveUsersInfo(streamInfo.channel.users)}
-          <h6>Ready to join?</h6>
-          <Button text="Join now" onClick={onDone} />
-        </div>
-      )}
+      <div className="mt-7 md:mt-0 flex flex-col justify-center">
+        {!streamInfo.channel ? (
+          <h6>Unexpected!!! Channel does not exist</h6>
+        ) : (
+          <div className="flex flex-col justify-center items-center gap-4">
+            {formatStreamLiveUsersInfo(streamInfo.channel.users)}
+            <h6>Ready to join?</h6>
+            <Button text="Join now" onClick={onDone} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

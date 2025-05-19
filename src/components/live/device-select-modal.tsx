@@ -25,7 +25,7 @@ export default function DeviceSelectModal({
 
   return (
     <div
-      className={`absolute bottom-full left-0 w-max py-2 rounded-lg shadow-lg ${
+      className={`absolute bottom-full left-0 md:w-max py-2 rounded-lg shadow-lg ${
         !darkBg ? "bg-white" : "bg-gray-900"
       }`}
       ref={ref}

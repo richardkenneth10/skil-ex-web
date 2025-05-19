@@ -22,6 +22,7 @@ export default async function LivePage({
 
   const res = await axios.get(`/streams/${channelId}/live-info`);
   const streamInfo: StreamInfoResData = res.data;
+  //todo: return if doen't load or try look for fix
 
   return <LiveFragment channelId={channelId} streamInfo={streamInfo} />;
 }

@@ -74,17 +74,15 @@ export default function SignupForm() {
           minLength={4}
           addedClass="pr-8"
         />
-        <button type="button" onClick={togglePasswordVisibility}>
+        <button
+          type="button"
+          className="absolute right-2 top-0 bottom-0 m-auto"
+          onClick={togglePasswordVisibility}
+        >
           {isPasswordVisible ? (
-            <FaEye
-              className="absolute top-0 right-2 bottom-0 m-auto"
-              color="#1A4F6E"
-            />
+            <FaEye color="#1A4F6E" />
           ) : (
-            <FaEyeSlash
-              className="absolute top-0 right-2 bottom-0 m-auto"
-              color="#1A4F6E"
-            />
+            <FaEyeSlash color="#1A4F6E" />
           )}
         </button>
       </div>{" "}

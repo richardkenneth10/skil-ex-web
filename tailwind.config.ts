@@ -21,6 +21,7 @@ export default {
         "text-secondary": "var(--text-secondary)",
         border: "var(--border)",
         divider: "var(--divider)",
+        bright: "var(--bright)",
       },
     },
   },

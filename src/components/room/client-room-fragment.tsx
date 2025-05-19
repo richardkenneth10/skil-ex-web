@@ -220,12 +220,14 @@ export default function ClientRoomFragment({
                           arr[i - 1].createdAt,
                           arr[i].createdAt
                         ))) && (
-                      <>
-                        <div className="w-fit m-auto px-2 py-1 text-[0.75rem] text-gray-700 font-bold bg-white rounded-md mb-2">
+                      <div className="flex flex-col items-center">
+                        <div className="w-fit px-2 py-1 text-[0.75rem] text-gray-700 font-bold bg-white rounded-md mb-2">
                           {DateTime.formatDate(m.createdAt)}
                         </div>
-                        {i == 0 && loadingMore && <Spinner className="pb-2" />}
-                      </>
+                        {i == 0 && loadingMore && (
+                          <Spinner className="pb-2 m-auto" />
+                        )}
+                      </div>
                     )}
                     <div
                       className={`rounded-md mb-2 p-2 w-3/4 ${

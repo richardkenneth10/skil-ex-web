@@ -39,11 +39,11 @@ export default async function RoomsFragment() {
       {matches.length == 0 ? (
         <p className="text-center">No data</p>
       ) : (
-        <div className="h-full p-4">
-          {matches.map((m) => {
+        <div className="p-4">
+          {[...matches, ...matches, ...matches, ...matches].map((m, i) => {
             const roomPath = `rooms/${m.exchangeRoomId}`;
             return (
-              <div className="relative" key={m.id}>
+              <div className="relative" key={m.id + i}>
                 <Link
                   href={roomPath}
                   className="absolute inset-0 md:pointer-events-none"
@@ -74,7 +74,7 @@ export default async function RoomsFragment() {
                     </Link>
                     {/* </div> */}
                   </div>
-                  <div className="bg-slate-100 h-1 rounded-md mx-4"></div>
+                  <div className="bg-divider h-1 rounded-md mx-4"></div>
                 </div>
               </div>
             );

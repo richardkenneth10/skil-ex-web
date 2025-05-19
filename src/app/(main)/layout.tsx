@@ -6,7 +6,7 @@ import Navigation from "@/components/(main)/navigation";
 import TopDrawer from "@/components/(main)/top-drawer";
 import { HeaderProvider } from "@/contexts/header-context";
 import { UserProvider } from "@/contexts/user-context";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function MainLayout({
   children,
@@ -24,18 +24,57 @@ export default function MainLayout({
     closeTopDrawer();
     closeDrawer();
   };
+  const pageContainerRef = useRef<HTMLDivElement>(null);
+
+  const [navBgOpacity, setNavBgOpacity] = useState<number>(1);
+
+  const lastScrollTopRef = useRef(0);
+  const minScrollTopOnDownRef = useRef<number | undefined>(0);
+
+  const pageScrollHandler = () => {
+    const container = pageContainerRef.current;
+    if (!container) return;
+
+    const lastScrollTop = lastScrollTopRef.current;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    console.log(scrollTop, scrollHeight, clientHeight);
+    console.log(lastScrollTop);
+    console.log(minScrollTopOnDownRef.current);
+
+    if (scrollTop < lastScrollTop) {
+      //scrolled up
+      console.log("up");
+
+      setNavBgOpacity(1);
+    } else {
+      //scrolled down
+      console.log("down");
+      if (!minScrollTopOnDownRef.current)
+        minScrollTopOnDownRef.current = scrollTop;
+      const opacity = 1 - (scrollTop - minScrollTopOnDownRef.current) / 200;
+      setNavBgOpacity(opacity < 0 ? 0 : opacity);
+      console.log(opacity + " opacity");
+    }
+    lastScrollTopRef.current = scrollTop <= 0 ? 0 : scrollTop; // Avoid negative values
+    console.log(lastScrollTop + " last");
+  };
 
   return (
     <div>
       <div className="h-screen flex" onClick={closeDrawers}>
-        <Navigation />
+        <Navigation bgOpacity={navBgOpacity} />
         <Drawer isOpen={isDrawerOpen} />
         <TopDrawer isOpen={isTopDrawerOpen} />
         <div className="w-full">
           <HeaderProvider>
             <UserProvider>
               <Header openDrawer={openDrawer} openTopDrawer={openTopDrawer} />
-              <div className="h-[calc(92vh-4.5rem)] md:h-[92vh] mt-[8vh] overflow-y-auto p-2">
+              <div
+                ref={pageContainerRef}
+                onScroll={pageScrollHandler}
+                className="h-[calc(92vh)] md:h-[92vh] mt-[8vh] overflow-y-auto px-2 pt-2 pb-[4.5rem]"
+              >
                 {children}
               </div>
             </UserProvider>

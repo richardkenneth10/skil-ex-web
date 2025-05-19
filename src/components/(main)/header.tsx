@@ -25,7 +25,7 @@ export default function Header({
   );
 
   return (
-    <div className="fixed top-0 left-0 md:left-[16.666667%] right-0 h-[8vh] flex md:justify-end bg-primary md:bg-white text-white md:text-inherit items-center py-4 px-4 md:pl-0">
+    <div className="fixed top-0 left-0 md:left-[16.666667%] right-0 h-[8vh] flex md:justify-end bg-primary md:bg-bright text-white md:text-inherit items-center py-4 px-4">
       <div className="md:mr-auto my-auto">
         {isCurrentPathBase ? (
           <button

@@ -3,11 +3,14 @@
 import { StreamInfoResData } from "@/app/live/[channelId]/page";
 import LocalVideo from "@/components/video/local-video";
 import useStartPeerSession2 from "@/hooks/use-start-peer-session2";
-import { RefObject, useEffect, useRef } from "react";
+import axios from "@/utils/axios";
+import { useRouter } from "next/navigation";
+import { RefObject, useEffect, useRef, useState } from "react";
 import RemoteAudio from "../video/remote-audio";
 import RemoteVideo from "../video/remote-video";
 import DeviceSelectMini from "./device-select-mini";
 import DraggableUser from "./draggable-user";
+import ExitControl, { ExitType } from "./exit-control";
 import FullContainer from "./full-container";
 import { Devices } from "./live-fragment";
 import OtherControl from "./other-control";
@@ -47,6 +50,7 @@ export default function LiveStream({
   toggleCameraMute: () => void;
 }) {
   const mainRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const {
     connectedUsers,
@@ -61,6 +65,7 @@ export default function LiveStream({
     // stopLocalRecord,
     // isRecordingLocally,
     peerVideoConnection,
+    leaveChannel,
   } = useStartPeerSession2(
     streamInfo.user.role,
     channelId!,
@@ -74,6 +79,12 @@ export default function LiveStream({
   // const [isFullScreen, setIsFullScreen] = useState(false);
 
   const userIsTeacher = streamInfo.user.role === "TEACHER";
+
+  const [isChatting, setIsChatting] = useState(false);
+
+  const handleChatting = () => {
+    setIsChatting((v) => !v);
+  };
 
   const handleScreenShare = async () => {
     if (isScreenShared) await cancelScreenSharing();
@@ -103,6 +114,18 @@ export default function LiveStream({
   const cameraMuteToggleHandler = async () => {
     toggleCameraMute();
     await toggleMuteVideo();
+  };
+
+  const exitHandler = async (type: ExitType) => {
+    switch (type) {
+      case "leave":
+        leaveChannel();
+        break;
+      case "end":
+        await axios.post(`/streams/${channelId}/end-live`);
+        break;
+    }
+    router.back();
   };
 
   useEffect(() => {
@@ -142,6 +165,11 @@ export default function LiveStream({
             </div>
           ))}
         </div>
+        {isChatting && (
+          <div className="absolute bg-white/50 backdrop-blur-sm bottom-[calc(1.25rem+14vw)] top-0 right-0 w-3/4 rounded-l-full flex flex-col items-end text-black ov">
+            ihugjkjkkljhn
+          </div>
+        )}
         <div className="absolute bottom-5 left-0 right-0 flex justify-center items-center gap-3">
           <DeviceSelectMini
             devices={[
@@ -189,6 +217,15 @@ export default function LiveStream({
             isVideoMuted={isVideoMuted}
             onToggleMuteVideo={handleMuteVideo}
           /> */}
+          <OtherControl
+            type="chat"
+            isOn={isChatting}
+            onOnToggle={handleChatting}
+          />
+          <ExitControl
+            userRole={streamInfo.user.role}
+            onExitToggle={exitHandler}
+          />
         </div>
       </div>
     </div>

@@ -66,8 +66,6 @@ export class PeerConnectionSession2 {
       routerRtpCapabilities: RtpCapabilities;
     }>((resolve) => this.socket.emit("join-channel", channel, resolve));
 
-    this._channel = channel;
-
     if (this.role !== role) throw new Error("User role does not match.");
 
     console.log("b4 cre", device);
@@ -208,6 +206,8 @@ export class PeerConnectionSession2 {
     );
     this.socket.emit("send-produced", channel);
 
+    this._channel = channel;
+
     // setTimeout(() => this.socket.emit("start-record", channel), 4000);
     // setTimeout(() => this.socket.emit("stop-record", channel), 30000);
 
@@ -216,6 +216,11 @@ export class PeerConnectionSession2 {
       videoMuted: videoProducer?.paused,
       isRecording,
     };
+  };
+
+  leaveChannel = () => {
+    if (!this._channel) return;
+    this.socket.emit("leave-channel", this._channel);
   };
 
   private _getPeerStream = (userId: string) => {
@@ -325,6 +330,10 @@ export class PeerConnectionSession2 {
     this.socket.on(`receive-message`, (message: SignalingMessage) =>
       callback(message)
     );
+  };
+
+  onStreamEnded = (callback: (endedAt: Date) => void) => {
+    this.socket.on(`stream-ended`, (endedAt: Date) => callback(endedAt));
   };
 
   replaceProducedTrack = async (
