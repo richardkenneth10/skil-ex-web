@@ -4,6 +4,7 @@ import { useHeader } from "@/contexts/header-context";
 import { useUser } from "@/contexts/user-context";
 import Constants from "@/utils/constants";
 import { usePathname, useRouter } from "next/navigation";
+import { CSSProperties } from "react";
 import { FaArrowLeft, FaBars } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa6";
 import Avatar from "./avatar";
@@ -11,9 +12,11 @@ import Avatar from "./avatar";
 export default function Header({
   openDrawer,
   openTopDrawer,
+  controlsStyle,
 }: {
   openDrawer: () => void;
   openTopDrawer: () => void;
+  controlsStyle?: CSSProperties;
 }) {
   const currentPath = usePathname();
   const router = useRouter();
@@ -25,7 +28,10 @@ export default function Header({
   );
 
   return (
-    <div className="fixed top-0 left-0 md:left-[16.666667%] right-0 h-[8vh] flex md:justify-end bg-primary md:bg-bright text-white md:text-inherit items-center py-4 px-4">
+    <div
+      className={`fixed z-10 top-0 left-0 md:left-[16.666667%] right-0 h-[3rem] flex md:justify-end bg-primary md:bg-bright text-white md:text-inherit items-center py-4 px-4`}
+      style={controlsStyle}
+    >
       <div className="md:mr-auto my-auto">
         {isCurrentPathBase ? (
           <button
@@ -51,7 +57,7 @@ export default function Header({
           openTopDrawer();
         }}
       >
-        <Avatar size="calc(8vh - 1rem)" url={user?.avatarUrl} />
+        <Avatar size="calc(3rem - 1rem)" url={user?.avatarUrl} />
         <h6 className="ml-2 font-bold text-sm">{user?.firstName ?? ""}</h6>
         <FaChevronDown className="ml-2 text-xl border border-black rounded-full p-1" />
       </button>

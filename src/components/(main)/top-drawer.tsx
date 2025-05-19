@@ -8,7 +8,7 @@ export default function TopDrawer({ isOpen }: { isOpen: boolean }) {
   return (
     <div
       className={`hidden md:flex fixed right-4 h-20 w-[11.5rem] flex-col justify-between bg-bright rounded-b-md transition-all duration-300 md:z-20 ${
-        isOpen ? "top-[8vh] shadow-2xl" : "-top-[5rem]"
+        isOpen ? "top-[3rem] shadow-2xl" : "-top-[5rem]"
       }`}
       onClick={(e) => e.stopPropagation()}
     >

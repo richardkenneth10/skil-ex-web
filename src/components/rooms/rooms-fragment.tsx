@@ -40,7 +40,15 @@ export default async function RoomsFragment() {
         <p className="text-center">No data</p>
       ) : (
         <div className="p-4">
-          {[...matches, ...matches, ...matches, ...matches].map((m, i) => {
+          {[
+            ...matches,
+            ...matches,
+            ...matches,
+            ...matches,
+            ...matches,
+            ...matches,
+            // ...matches, ...matches, ...matches
+          ].map((m, i) => {
             const roomPath = `rooms/${m.exchangeRoomId}`;
             return (
               <div className="relative" key={m.id + i}>
